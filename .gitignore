@@ -1,23 +1,18 @@
-# Ignore Node.js modules
+# Node.js dependencies
 node_modules/
-
-# Ignore environment variable files
-.env
-
-# Ignore log files
-*.log
-
-# Ignore Mac system files
-.DS_Store
-
-# Ignore cache/bundled files
 client/node_modules/
-client/.next/
-client/.cache/
 backend/node_modules/
 
-# Ignore node_modules and cache folders
-node_modules/
+# Build / cache directories
 .cache/
-client/node_modules/
-client/node_modules/.cache/
+client/.cache/
+client/.next/
+
+# Environment variable files
+.env
+
+# Log files
+*.log
+
+# macOS system files
+.DS_Store
