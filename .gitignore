@@ -1,0 +1,23 @@
+# Ignore Node.js modules
+node_modules/
+
+# Ignore environment variable files
+.env
+
+# Ignore log files
+*.log
+
+# Ignore Mac system files
+.DS_Store
+
+# Ignore cache/bundled files
+client/node_modules/
+client/.next/
+client/.cache/
+backend/node_modules/
+
+# Ignore node_modules and cache folders
+node_modules/
+.cache/
+client/node_modules/
+client/node_modules/.cache/
