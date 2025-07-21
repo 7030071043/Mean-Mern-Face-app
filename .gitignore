@@ -1,18 +1,51 @@
-# Node.js dependencies
+# Node modules (do NOT push these)
 node_modules/
 client/node_modules/
 backend/node_modules/
 
-# Build / cache directories
-.cache/
-client/.cache/
+# Build outputs (React, Vite, etc.)
+dist/
+build/
+client/dist/
+client/build/
 client/.next/
 
-# Environment variable files
-.env
+# Cache & temporary files
+.cache/
+client/.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Log files
+# Environment variables (keep your secrets private!)
+.env
+.env.local
+client/.env
+client/.env.local
+backend/.env
+backend/.env.local
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# VSCode settings (optional)
+.vscode/
+
+# Git directory
+.git/
+
+# Logs
 *.log
 
-# macOS system files
-.DS_Store
+# IDEs
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Face-api.js model files (if any stored locally)
+models/
+client/public/models/
