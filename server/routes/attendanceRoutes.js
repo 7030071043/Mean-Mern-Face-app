@@ -113,6 +113,8 @@ router.get('/export', async (req, res) => {
   }
 });
 
+
+
 // ✅ POST: Mark attendance only once per day
 router.post('/', async (req, res) => {
   try {
