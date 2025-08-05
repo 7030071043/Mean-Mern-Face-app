@@ -29,6 +29,9 @@ dump/
 # React (frontend/client)
 # ====================
 client/node_modules/
+ client/node_modules/.cache/
+.cache/
+
 client/build/
 client/.env
 client/.env.local

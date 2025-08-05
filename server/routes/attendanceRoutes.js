@@ -11,7 +11,7 @@ function getDayRange(dateString) {
   return { start, end };
 }
 
-// ✅ GET: Today's attendance (optional ?date=YYYY-MM-DD)`
+//  GET: Today's attendance (optional ?date=YYYY-MM-DD)`
 router.get('/today', async (req, res) => {
   try {
     const { date } = req.query;
