@@ -1,0 +1,13 @@
+{
+  "name": "mern-app",
+  "version": "1.0.0",
+  "scripts": {
+    "install-client": "cd client && npm install",
+    "install-server": "cd server && npm install",
+    "build": "npm run install-client && cd client && npm run build && rm -rf ../server/public && mv build ../server/public",
+    "start": "cd server && npm start"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
