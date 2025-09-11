@@ -21,25 +21,27 @@ app.use(express.urlencoded({ extended: true }));
 // DB Connection
 connectDB();
 
-// Static uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Serve static files from React
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Routes
+// ✅ API routes first
 app.use('/api', require('./routes/auth'));
-app.use('/api', require('./routes/userRoutes'));
 app.use('/api', faceRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/workers', require('./routes/workerRoutes'));
 app.use('/api/dpr', dprRoutes);
-app.use('/api/sites', siteRoutes); 
+app.use('/api/sites', siteRoutes);
+
+// ✅ Static uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// ✅ Serve React build
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ⚡ Catch-all should be LAST
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+
 
  
 const PORT = process.env.PORT || 5000;

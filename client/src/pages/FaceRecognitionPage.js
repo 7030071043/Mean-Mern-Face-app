@@ -59,73 +59,78 @@ const FaceRecognitionPage = () => {
   }, []);
 
   useEffect(() => {
-  const interval = setInterval(async () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas || video.readyState !== 4) return;
+    const interval = setInterval(async () => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (!video || !canvas || video.readyState !== 4) return;
 
-    const detections = await faceapi
-      .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks()
-      .withFaceDescriptors();
+      const detections = await faceapi
+        .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptors();
 
-    const dims = faceapi.matchDimensions(canvas, {
-      width: video.videoWidth,
-      height: video.videoHeight
-    });
+      const dims = faceapi.matchDimensions(canvas, {
+        width: video.videoWidth,
+        height: video.videoHeight
+      });
 
-    canvas.width = dims.width;
-    canvas.height = dims.height;
+      canvas.width = dims.width;
+      canvas.height = dims.height;
 
-    const resized = faceapi.resizeResults(detections, dims);
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    faceapi.draw.drawDetections(canvas, resized);
-    faceapi.draw.drawFaceLandmarks(canvas, resized);
+      const resized = faceapi.resizeResults(detections, dims);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      faceapi.draw.drawDetections(canvas, resized);
+      faceapi.draw.drawFaceLandmarks(canvas, resized);
 
-    if (detections.length > 0) {
-      const descriptor = detections[0].descriptor;
-      setDescriptor(descriptor);
+      if (detections.length > 0) {
+        const descriptor = detections[0].descriptor;
+        setDescriptor(descriptor);
 
-      try {
-        const res = await fetch('http://localhost:5000/api/descriptors');
-        const knownFaces = await res.json();
+        try {
+          const res = await fetch('http://localhost:5000/api/descriptors');
+          const data = await res.json();
+          const knownFaces = data.map(face => ({
+            email: face.email,
+            descriptor: new Float32Array(face.descriptor),
+          }));
 
-        let matched = false;
-        for (let face of knownFaces) {
-          const storedDescriptor = new Float32Array(face.descriptor);
-          const distance = faceapi.euclideanDistance(descriptor, storedDescriptor);
-          if (distance < 0.5) {
-            if (matchedFace?.email !== face.email) {
-              const msg = `✅ Face matched: ${face.email}`;
-              setStatus(msg);
-              setMatchedFace(face);
-              speak(`Face matched with ${face.email}`);
-              successSound.play().catch(err => console.warn("🔇 Audio play error:", err));
+          
+          let matched = false;
+          for (let face of knownFaces) {
+            const storedDescriptor = new Float32Array(face.descriptor);
+            const distance = faceapi.euclideanDistance(descriptor, storedDescriptor);
+            if (distance < 0.5) {
+              if (matchedFace?.email !== face.email) {
+                const msg = `✅ Face matched: ${face.email}`;
+                setStatus(msg);
+                setMatchedFace(face);
+                speak(`Face matched with ${face.email}`);
+                successSound.play().catch(err => console.warn("🔇 Audio play error:", err));
+              }
+              matched = true;
+              break;
             }
-            matched = true;
-            break;
           }
-        }
 
-        if (!matched) {
-          if (matchedFace !== null) {
-            setMatchedFace(null);
-            setStatus("❌ No match found");
-            speak("No match found. Please try again.");
+          if (!matched) {
+            if (matchedFace !== null) {
+              setMatchedFace(null);
+              setStatus("❌ No match found");
+              speak("No match found. Please try again.");
+            }
           }
-        }
 
-      } catch (err) {
-        console.error("Error fetching descriptors:", err);
+        } catch (err) {
+          console.error("Error fetching descriptors:", err);
+        }
+      } else {
+        setStatus("😐 No face detected");
       }
-    } else {
-      setStatus("😐 No face detected");
-    }
-  }, 2000);
+    }, 2000);
 
-  return () => clearInterval(interval);
-}, [matchedFace]);
+    return () => clearInterval(interval);
+  }, [matchedFace]);
 
   const markAttendance = async () => {
     if (!matchedFace) return alert("No matched face available!");

@@ -1,6 +1,7 @@
-const express = require('express');
+const express = require ('express');
 const router = express.Router();
 const Attendance = require('../models/Attendance');
+const Face = require('../models/Face'); // <-- add this
 
 // 🔧 Reusable function to get today's date range
 function getDayRange(date = new Date()) {
@@ -65,6 +66,17 @@ router.get('/attendance/history', async (req, res) => {
   } catch (err) {
     console.error("❌ Failed to fetch history:", err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get("/descriptors", async (req, res) => {
+  try {
+    const users = await User.find({}, "email faceDescriptor"); 
+    // Only fetch email + descriptors
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching descriptors:", error);
+    res.status(500).json({ message: "Server error while fetching descriptors" });
   }
 });
 

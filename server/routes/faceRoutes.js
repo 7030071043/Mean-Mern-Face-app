@@ -69,16 +69,44 @@ router.post('/attendance', async (req, res) => {
   }
 });
 
+// ✅ Get today's attendance
+router.get('/attendance/today', async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+
+    const records = await Attendance.find({
+      checkIn: {
+        $gte: new Date(`${today}T00:00:00.000Z`),
+        $lte: new Date(`${today}T23:59:59.999Z`)
+      }
+    });
+
+    res.status(200).json(records);
+  } catch (err) {
+    console.error("❌ Failed to fetch today attendance:", err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 
 // ✅ Get all saved descriptors
 router.get('/descriptors', async (req, res) => {
   try {
-    const all = await Face.find();
-    res.status(200).json(all);
+    const faces = await Face.find();
+    // Ensure descriptors are plain arrays
+    const formatted = faces.map(f => ({
+      email: f.email,
+      descriptor: Array.isArray(f.descriptor)
+        ? f.descriptor
+        : Array.from(f.descriptor)
+    }));
+    res.json(formatted);
   } catch (err) {
     console.error("❌ Failed to fetch descriptors:", err);
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 module.exports = router;
