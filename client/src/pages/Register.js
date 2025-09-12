@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+const API_URL = process.env.REACT_APP_API_URL;
 
-const Register = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    await axios.post('http://localhost:5000/api/register', { email, password });
+const handleRegister = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await axios.post(`${API_URL}/register`, { email, password });
+    console.log("✅ Registered:", res.data);
     alert('Registered successfully!');
-  };
+  } catch (err) {
+    console.error("❌ Error:", err.response?.data || err.message);
+    alert('Registration failed!');
+  }
+
+
 
   return (
     <div className="container d-flex justify-content-center align-items-center vh-100 bg-light">
