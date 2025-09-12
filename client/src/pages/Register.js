@@ -1,22 +1,37 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
-
-const API_URL = process.env.REACT_APP_API_URL;
+import { Link, useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  // ✅ Make sure your backend URL includes /api
+  const API_URL = process.env.REACT_APP_API_URL; // e.g., https://mean-mern-face-app-pbyy.onrender.com/api
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (!email || !password) {
+      alert('Please fill in both email and password.');
+      return;
+    }
+
     try {
-      const res = await axios.post(`${API_URL}/register`, { email, password });
+      const res = await axios.post(
+        `${API_URL}/register`,
+        { email, password },
+        { headers: { 'Content-Type': 'application/json' } } // ensures JSON payload
+      );
+
       console.log("✅ Registered:", res.data);
       alert('Registered successfully!');
+      navigate('/login'); // redirect to login after success
     } catch (err) {
       console.error("❌ Error:", err.response?.data || err.message);
-      alert('Registration failed!');
+      const message = err.response?.data?.message || 'Registration failed!';
+      alert(message);
     }
   };
 
@@ -27,6 +42,7 @@ const Register = () => {
         <form onSubmit={handleRegister}>
           <div className="mb-3">
             <input
+              type="email"
               className="form-control"
               placeholder="Email"
               value={email}
