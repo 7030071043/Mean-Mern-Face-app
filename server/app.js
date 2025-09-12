@@ -18,11 +18,11 @@ const app = express();
 
 // ✅ Secure CORS setup
 const allowedOrigins = [
-  "http://localhost:3000", 
+  "http://localhost:3000",
   "https://moonlit-stardust-37e1cf.netlify.app"
 ];
 
-const corsOptions = {
+app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -30,11 +30,9 @@ const corsOptions = {
       callback(new Error("❌ Not allowed by CORS"));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
-};
-
-app.use(cors(corsOptions));
+}));
 
 // Middleware
 app.use(express.json());
