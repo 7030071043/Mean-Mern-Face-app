@@ -37,15 +37,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/sites/attendance/site/:siteId
-router.get('/attendance/site/:siteId', async (req, res) => {
-  try {
-    const { siteId } = req.params;
-    const attendance = await Attendance.find({ siteId });
-    res.json(attendance);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch attendance for site' });
-  }
-});
+ 
+ 
+
 
 module.exports = router;

@@ -8,7 +8,12 @@ const Register = () => {
   const navigate = useNavigate();
 
   // ✅ Make sure your backend URL includes /api
-  const API_URL = process.env.REACT_APP_API_URL; // e.g., https://mean-mern-face-app-pbyy.onrender.com/api
+  // const API_URL = process.env.REACT_APP_API_URL; // e.g., https://mean-mern-face-app-pbyy.onrender.com/api
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:5000/api"
+    : "https://mean-mern-face-app-pbyy.onrender.com/api");
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -20,7 +25,7 @@ const Register = () => {
 
     try {
       const res = await axios.post(
-        `${API_URL}/register`,
+        `${API_URL}/api/register`,
         { email, password },
         { headers: { 'Content-Type': 'application/json' } } // ensures JSON payload
       );

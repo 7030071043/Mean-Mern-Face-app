@@ -1,0 +1,54 @@
+.face-page {
+  background: #f4f6f9;
+  min-height: 100vh;
+}
+
+.card {
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 20px;
+}
+
+.camera-wrapper {
+  position: relative;
+  overflow: hidden; /* ensures rectangles don't spill out */
+  border-radius: 12px;
+}
+
+.camera-wrapper video,
+.camera-wrapper canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+
+.status-text {
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+.attendance-list li {
+  border-radius: 8px;
+  margin-bottom: 6px;
+  padding: 10px 15px;
+  transition: background 0.2s;
+}
+
+.attendance-list li:hover {
+  background: #f1f3f5;
+}
+
+.btn-lg {
+  min-width: 200px;
+}
+
+@media (max-width: 992px) {
+  .btn-lg {
+    width: 100%;
+  }
+
+  .camera-wrapper {
+    max-height: none;
+  }
+}

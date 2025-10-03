@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import './MainLayout.css'; // Optional for custom styling
+import './MainLayout.css'; // custom styles
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -10,28 +10,48 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="main-layout">
-      <h2 className="mb-4 text-primary">🏗️ Construction Site Management</h2>
+    <div className="main-layout d-flex flex-column align-items-center justify-content-center min-vh-100">
+      <div className="text-center mb-5">
+        <h2 className="fw-bold text-primary">🏗️ Construction Site Management</h2>
+        <p className="text-muted">Manage sites, workers, tasks, attendance & DPRs</p>
+      </div>
 
-      <div className="d-grid gap-3 col-6 mx-auto">
-        <button className="btn btn-outline-primary" onClick={() => handleNav('/siteRoutes')}>
-          📊 Dashboard
-        </button>
-        <button className="btn btn-outline-success" onClick={() => handleNav('/workers')}>
-          👷 Workers Management
-        </button>
-        <button className="btn btn-outline-warning" onClick={() => handleNav('/save-descriptor')}>
-          🧠 Face Recognition
-        </button>
-        <button className="btn btn-outline-info" onClick={() => handleNav('/attendanceRoutes')}>
-          📅 Attendance History
-        </button>
-        <button className="btn btn-outline-secondary" onClick={() => handleNav('/taskRoutes')}>
-          ✅ Task Assignment
-        </button>
-        <button className="btn btn-outline-dark" onClick={() => handleNav('/dprRoutes')}>
-          📝 Generate DPR
-        </button>
+      <div className="features-grid">
+        <div className="feature-card" onClick={() => handleNav('/siteRoutes')}>
+          <span className="icon">📊</span>
+          <h5>Dashboard</h5>
+          <p>View site attendance, tasks & DPR summary</p>
+        </div>
+
+        <div className="feature-card" onClick={() => handleNav('/workers')}>
+          <span className="icon">👷</span>
+          <h5>Workers</h5>
+          <p>Manage worker profiles and records</p>
+        </div>
+
+        <div className="feature-card" onClick={() => handleNav('/save-descriptor')}>
+          <span className="icon">🧠</span>
+          <h5>Face Recognition</h5>
+          <p>Register & match workers with AI</p>
+        </div>
+
+        <div className="feature-card" onClick={() => handleNav('/attendanceRoutes')}>
+          <span className="icon">📅</span>
+          <h5>Attendance</h5>
+          <p>Check daily & historical attendance</p>
+        </div>
+
+        <div className="feature-card" onClick={() => handleNav('/taskRoutes')}>
+          <span className="icon">✅</span>
+          <h5>Tasks</h5>
+          <p>Assign and track work progress</p>
+        </div>
+
+        <div className="feature-card" onClick={() => handleNav('/dprRoutes')}>
+          <span className="icon">📝</span>
+          <h5>DPR</h5>
+          <p>Generate daily progress reports</p>
+        </div>
       </div>
     </div>
   );

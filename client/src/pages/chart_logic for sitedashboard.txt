@@ -1,0 +1,81 @@
+ // Charts
+  useEffect(() => {
+    if (!selectedSite || loading) return;
+
+    // Attendance Chart
+    const ctx = document.getElementById("attendanceChart")?.getContext("2d");
+    if (ctx && filteredAttendance.length) {
+      const dates = filteredAttendance.map(a => new Date(a.checkIn).toLocaleDateString());
+      const countByDate = dates.reduce((acc, date) => {
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      }, {});
+
+      if (window.attendanceChartInstance) window.attendanceChartInstance.destroy();
+      window.attendanceChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: Object.keys(countByDate),
+          datasets: [{
+            label: "Workers Present",
+            data: Object.values(countByDate),
+            borderColor: "rgba(75,192,192,1)",
+            backgroundColor: "rgba(75,192,192,0.2)",
+            fill: true,
+          }],
+        },
+        options: { responsive: true, maintainAspectRatio: false },
+      });
+    }
+
+    // Task Pie Chart
+    const ctx2 = document.getElementById("taskChart")?.getContext("2d");
+    if (ctx2 && tasks.length) {
+      const completed = tasks.filter(t => t.status === "completed").length;
+      const pending = tasks.length - completed;
+      new Chart(ctx2, {
+        type: "pie",
+        data: { labels: ["Completed", "Pending"], datasets: [{ data: [completed, pending], backgroundColor: ["#4caf50", "#f44336"] }] },
+        options: { responsive: true, maintainAspectRatio: false },
+      });
+    }
+
+    // DPR Chart
+   const ctx3 = document.getElementById("dprChart")?.getContext("2d");
+if (ctx3 && dprs.length) {
+  // destroy old chart if exists
+  if (dprChartRef.current) dprChartRef.current.destroy();
+
+  const filteredDprs = dprs.filter(d => !dprFilterDate || new Date(d.date).toDateString() === new Date(dprFilterDate).toDateString());
+
+  const labels = filteredDprs.map(d => d.date);
+  const completedWork = filteredDprs.map(d => d.completedTasks || 0);
+  const totalWork = filteredDprs.map(d => d.totalTasks || 0);
+
+  dprChartRef.current = new Chart(ctx3, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { label: "Completed Tasks", data: completedWork, backgroundColor: "rgba(54, 162, 235, 0.7)" },
+        { label: "Total Tasks", data: totalWork, backgroundColor: "rgba(255, 206, 86, 0.7)" }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+  });
+}
+
+
+    // Manpower Chart
+    const ctx4 = document.getElementById("manpowerChart")?.getContext("2d");
+    if (ctx4 && workers.length) {
+      const totalWorkers = workers.length;
+      const presentToday = attendance.filter(a => new Date(a.checkIn).toDateString() === new Date().toDateString()).length;
+      new Chart(ctx4, {
+        type: "doughnut",
+        data: { labels: ["Present Today", "Absent"], datasets: [{ data: [presentToday, totalWorkers - presentToday], backgroundColor: ["#36A2EB", "#E0E0E0"], borderWidth: 1 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } }, cutout: "70%" }
+      });
+    }
+
+  }, [attendance, tasks, dprs, workers, selectedSite, loading, filteredAttendance]);

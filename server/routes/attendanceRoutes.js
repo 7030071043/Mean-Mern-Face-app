@@ -1,7 +1,14 @@
-const express = require ('express');
+const express = require("express");
 const router = express.Router();
-const Attendance = require('../models/Attendance');
-const XLSX = require('xlsx');
+const mongoose = require('mongoose');
+const Attendance = require("../models/Attendance");
+const Site = require("../models/Site");   // ✅ needed for siteId lookup
+const XLSX = require("xlsx");
+const Worker = require('../models/Worker'); // make sure Worker model exists
+const site = require('../models/Site');
+
+// Helper to check valid ObjectId
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // 🔧 Reusable function to get start and end of a day (local timezone)
 function getDayRange(dateString) {
@@ -11,73 +18,75 @@ function getDayRange(dateString) {
   return { start, end };
 }
 
-//  GET: Today's attendance (optional ?date=YYYY-MM-DD)`
-router.get('/today', async (req, res) => {
+/* ------------------- 📌 GET ROUTES ------------------- */
+
+// ✅ Get today's attendance (optionally pass ?date=YYYY-MM-DD)
+router.get("/today", async (req, res) => {
   try {
     const { date } = req.query;
     const { start, end } = getDayRange(date);
 
     const todayAttendance = await Attendance.find({
-      timestamp: { $gte: start, $lte: end }
-    });
+      timestamp: { $gte: start, $lte: end },
+    }).sort({ timestamp: -1 });
 
     res.json(todayAttendance);
   } catch (err) {
-    console.error('❌ /today error:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("❌ /today error:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-// ✅ GET: Attendance by date (?date=YYYY-MM-DD)
-router.get('/by-date', async (req, res) => {
+// ✅ Get attendance by specific date (?date=YYYY-MM-DD)
+router.get("/by-date", async (req, res) => {
   try {
     const { date } = req.query;
-    if (!date) return res.status(400).json({ error: 'Date is required' });
+    if (!date) return res.status(400).json({ error: "Date is required" });
 
     const { start, end } = getDayRange(date);
 
     const records = await Attendance.find({
-      timestamp: { $gte: start, $lte: end }
-    });
+      timestamp: { $gte: start, $lte: end },
+    }).sort({ timestamp: -1 });
 
     res.json(records);
   } catch (err) {
-    console.error('❌ /by-date error:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("❌ /by-date error:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-// ✅ GET: Summary for graph (attendance count by email)
-router.get('/summary', async (req, res) => {
+// ✅ Summary for graph (attendance count by email)
+router.get("/summary", async (req, res) => {
   try {
     const summary = await Attendance.aggregate([
       {
         $group: {
           _id: "$email",
-          count: { $sum: 1 }
-        }
+          count: { $sum: 1 },
+        },
       },
       {
         $project: {
           email: "$_id",
           count: 1,
-          _id: 0
-        }
-      }
+          _id: 0,
+        },
+      },
     ]);
     res.json(summary);
   } catch (err) {
-    console.error('❌ /summary error:', err);
-    res.status(500).json({ error: 'Summary fetch error' });
+    console.error("❌ /summary error:", err);
+    res.status(500).json({ error: "Summary fetch error" });
   }
 });
 
-// ✅ GET: Export attendance as Excel or CSV (optional ?date=YYYY-MM-DD&format=csv)
-router.get('/export', async (req, res) => {
+// ✅ Export attendance as Excel or CSV (optional ?date=YYYY-MM-DD&format=csv)
+router.get("/export", async (req, res) => {
   try {
     const { date, format } = req.query;
     let query = {};
-    let filename = 'Attendance.xlsx';
+    let filename = "Attendance.xlsx";
 
     if (date) {
       const { start, end } = getDayRange(date);
@@ -87,68 +96,119 @@ router.get('/export', async (req, res) => {
 
     const records = await Attendance.find(query).sort({ timestamp: -1 });
 
-    const data = records.map(r => ({
+    const data = records.map((r) => ({
       Email: r.email,
-      TimeStamp: new Date(r.timestamp).toLocaleString()
+      Site: r.siteName || r.siteId,
+      TimeStamp: new Date(r.timestamp).toLocaleString(),
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
 
-    if (format === 'csv') {
+    if (format === "csv") {
       const csv = XLSX.utils.sheet_to_csv(ws);
-      res.setHeader('Content-Disposition', `attachment; filename=${filename.replace('.xlsx', '.csv')}`);
-      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=${filename.replace(".xlsx", ".csv")}`
+      );
+      res.setHeader("Content-Type", "text/csv");
       return res.send(csv);
     }
 
-    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+    res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
     res.send(buffer);
   } catch (err) {
-    console.error('❌ Excel export failed:', err);
-    res.status(500).json({ error: 'Failed to export attendance' });
+    console.error("❌ Excel export failed:", err);
+    res.status(500).json({ error: "Failed to export attendance" });
   }
 });
 
-
-
-// ✅ POST: Mark attendance only once per day
-router.post('/', async (req, res) => {
+// ✅ Get attendance for a specific site
+router.get("/site/:siteId", async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email is required' });
-
-    const { start, end } = getDayRange();
-
-    const alreadyMarked = await Attendance.findOne({
-      email,
-      timestamp: { $gte: start, $lte: end }
-    });
-
-    if (alreadyMarked) {
-      return res.status(400).json({ error: 'Attendance already marked today' });
-    }
-
-   const attendance = new Attendance({ email, timestamp: new Date() });
-
-    await attendance.save();
-    res.status(200).json({ message: 'Attendance marked' });
+    const { siteId } = req.params;
+    const records = await Attendance.find({ siteId }).sort({ timestamp: -1 });
+    res.json(records);
   } catch (err) {
-    console.error('❌ Error marking attendance:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("❌ /site/:siteId error:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-module.exports = router;
+/* ------------------- 📌 POST ROUTE ------------------- */
  
 
 
+// POST attendance (mark once per user per day per site)
+router.post("/", async (req, res) => {
+  try {
+    const { email, siteId } = req.body;
+
+    if (!email || !siteId)
+      return res.status(400).json({ error: "Email and siteId are required" });
+
+    // Validate siteId format
+    if (!mongoose.Types.ObjectId.isValid(siteId))
+      return res.status(400).json({ error: "Invalid siteId" });
+
+    // Get start of today
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    // Check if attendance already exists for this user at this site today
+    const existing = await Attendance.findOne({
+      email,
+      siteId,
+      timestamp: { $gte: todayStart, $lte: todayEnd },
+    });
+
+    if (existing)
+      return res.status(400).json({ error: "Attendance already marked today" });
+
+    // Save new attendance
+    const attendance = new Attendance({ email, siteId });
+    await attendance.save();
+
+    res.json({ message: "Attendance saved successfully", attendance });
+  } catch (err) {
+    console.error("❌ Attendance save error:", err);
+    res.status(500).json({ error: "Server error while saving attendance" });
+  }
+});
+
+
+// In attendanceRoutes.js
+router.get('/site/:siteId/today', async (req, res) => {
+  try {
+    const { siteId } = req.params;
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    const attendance = await Attendance.find({
+      siteId,
+      timestamp: { $gte: start, $lte: end },
+    });
+
+    res.json(attendance);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ message: "Server error" });
+  }
+});
 
 
 
-
-
-      
+module.exports = router;

@@ -1,0 +1,174 @@
+/* Container */
+.task-panel-container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  font-family: 'Inter', sans-serif;
+}
+
+.task-panel-container h4 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0d6efd;
+  margin-bottom: 2rem;
+}
+
+/* Grid Layout */
+.task-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 2rem;
+}
+
+.task-left label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.task-left input[type="text"],
+.task-left input[type="email"],
+.task-left input[type="date"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ced4da;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  transition: border 0.2s;
+}
+
+.task-left input:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13,110,253,0.2);
+}
+
+/* Voice Button */
+.task-input-voice {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-voice {
+  padding: 0 1rem;
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.btn-voice:hover {
+  background-color: #0b5ed7;
+}
+
+/* Assigned Tasks */
+.task-right h5 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0d6efd;
+  margin-bottom: 1rem;
+}
+
+.assigned-tasks {
+  max-height: 500px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+}
+
+.assigned-tasks li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.assigned-tasks li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+
+/* Badges */
+.badge-done {
+  background-color: #d1e7dd;
+  color: #198754;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.badge-pending {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Complete Button */
+.complete-btn {
+  background-color: #198754;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.complete-btn:hover {
+  background-color: #157347;
+}
+
+/* Listening Toast */
+.listening-toast {
+  background-color: #e7f1ff;
+  color: #0d6efd;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0%,100%{opacity:1;}
+  50%{opacity:0.6;}
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .task-panel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .assigned-tasks li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .task-input-voice {
+    flex-direction: column;
+  }
+
+  .btn-voice {
+    width: 100%;
+  }
+
+  .btn.btn-primary {
+    width: 100%;
+  }
+}

@@ -92,4 +92,19 @@ router.get('/:email', async (req, res) => {
     res.status(500).json({ error: 'Error fetching tasks' });
   }
 });
+
+router.get("/site/:siteId", async (req, res) => {
+  try {
+    const { siteId } = req.params;  // Extract siteId from route parameters
+    const tasks = await Task.find({ siteId });
+    res.json(Array.isArray(tasks) ? tasks : []);
+  } catch (err) {
+    console.error("❌ Error fetching site tasks:", err);
+    res.status(500).json({ error: "Error fetching site tasks" });
+  }
+});
+
+
+
+
 module.exports = router;

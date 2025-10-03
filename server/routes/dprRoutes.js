@@ -2,10 +2,13 @@ const express = require('express');
 const router = express.Router();
 const Dpr = require('../models/Dpr');
 const XLSX = require('xlsx');
-
+const Site = require('../models/Site');
 // Save DPR
 router.post('/save', async (req, res) => {
   try {
+    const { siteId } = req.body;
+    if (!siteId) return res.status(400).json({ error: 'Site is required' });
+
     const dpr = new Dpr(req.body);
     await dpr.save();
     res.status(200).json({ message: 'DPR saved successfully' });
@@ -14,6 +17,7 @@ router.post('/save', async (req, res) => {
     res.status(500).json({ error: 'Failed to save DPR' });
   }
 });
+
 
 // Get all DPRs
 router.get('/all', async (req, res) => {
@@ -41,24 +45,19 @@ router.get('/by-date', async (req, res) => {
 router.get('/export', async (req, res) => {
   const { date } = req.query;
   try {
-    const dprs = await Dpr.find({ date });
+    const dprs = await Dpr.find({ date }).populate('siteId', 'name'); // populate site name
     if (!dprs.length) return res.status(404).json({ error: 'No DPRs found' });
 
     const rows = [];
     dprs.forEach(dpr => {
-      const maxLen = Math.max(
-        dpr.labourReport.length,
-        dpr.toolsUsed.length,
-        dpr.deliveryReport.length,
-        1
-      );
-
+      const maxLen = Math.max(dpr.labourReport.length, dpr.toolsUsed.length, dpr.deliveryReport.length, 1);
       for (let i = 0; i < maxLen; i++) {
         const labour = dpr.labourReport[i] || {};
         const tool = dpr.toolsUsed[i] || {};
         const delivery = dpr.deliveryReport[i] || {};
 
         rows.push({
+          Site: dpr.siteId?.name || '', // include site name
           Project: dpr.projectName,
           Date: dpr.date,
           SubNo: dpr.subNo,
@@ -107,5 +106,19 @@ router.get('/export', async (req, res) => {
     res.status(500).json({ error: 'Failed to export DPR' });
   }
 });
+
+
+router.get("/site/:siteId", async (req, res) => {
+  try {
+    const { siteId } = req.params; // extract from params
+    const dprs = await Dpr.find({ siteId });
+    res.json(Array.isArray(dprs) ? dprs : []);
+  } catch (err) {
+    console.error("❌ Error fetching DPRs by site:", err);
+    res.status(500).json({ error: "Error fetching DPRs" });
+  }
+});
+
+
 
 module.exports = router;

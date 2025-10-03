@@ -18,6 +18,7 @@ const materialSchema = new mongoose.Schema({
 }, { _id: false });
 
 const dprSchema = new mongoose.Schema({
+  siteId: { type: mongoose.Schema.Types.ObjectId, ref: 'Site', required: true }, // Added siteId
   projectName: String,
   date: String,
   subNo: String,
@@ -34,5 +35,6 @@ const dprSchema = new mongoose.Schema({
   completedWork: String,
   nextWork: String
 }, { timestamps: true });
+
 
 module.exports = mongoose.model('Dpr', dprSchema);

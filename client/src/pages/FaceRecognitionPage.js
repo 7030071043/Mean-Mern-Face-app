@@ -1,68 +1,103 @@
-import React, { useEffect, useRef, useState } from 'react';
-import * as faceapi from '@vladmandic/face-api';
+import React, { useEffect, useRef, useState } from "react";
+import * as faceapi from "@vladmandic/face-api";
+import './FaceRecognitionPage.css'; // We'll create a CSS file for custom styles
 
-// hi this face app i've designed
-const FaceRecognitionPage = () => {
+const FaceRecognitionPage = ({ onAttendanceMarked }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [descriptor, setDescriptor] = useState(null);
-  const [status, setStatus] = useState('');
+
+  const [workers, setWorkers] = useState([]);
+  const [descriptors, setDescriptors] = useState([]);
+  const [matchedWorker, setMatchedWorker] = useState(null);
   const [todayAttendance, setTodayAttendance] = useState([]);
-  const [matchedFace, setMatchedFace] = useState(null);
-  const [aiSummary, setAiSummary] = useState('');
-  const [loading, setLoading] = useState(false);
-  const successSound = new Audio(process.env.PUBLIC_URL + '/success.mp3');
+  const [sites, setSites] = useState([]);
+  const [selectedSite, setSelectedSite] = useState("");
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [status, setStatus] = useState("");
 
-  const speak = (text) => {
-    const synth = window.speechSynthesis;
-    if (!synth) return;
-    const utter = new SpeechSynthesisUtterance(text);
-    synth.speak(utter);
-  };
+  const successSound = new Audio(process.env.PUBLIC_URL + "/success.mp3");
 
- 
-
-
+  // Load face-api models
   useEffect(() => {
     const loadModels = async () => {
       const MODEL_URL = process.env.PUBLIC_URL + "/models";
       await Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + "/tiny_face_detector"),
-        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + "/face_landmark_68"),
-        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + "/face_recognition")
+        faceapi.nets.tinyFaceDetector.loadFromUri(`${MODEL_URL}/tiny_face_detector`),
+        faceapi.nets.faceLandmark68Net.loadFromUri(`${MODEL_URL}/face_landmark_68`),
+        faceapi.nets.faceRecognitionNet.loadFromUri(`${MODEL_URL}/face_recognition`),
       ]);
+      setModelsLoaded(true);
     };
     loadModels();
   }, []);
 
+  // Start camera
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((stream) => {
         if (videoRef.current) videoRef.current.srcObject = stream;
+        setCameraReady(true);
       })
-      .catch(err => console.error("Camera error:", err));
+      .catch((err) => console.error("Camera error:", err));
   }, []);
 
-  const fetchTodayAttendance = async () => {
-    try {
-      const res = await fetch('http://localhost:5000/api/attendance/today');
-      const data = await res.json();
-      setTodayAttendance(data);
-
-      const uniqueEmails = [...new Set(data.map(r => r.email))];
-      const summary = `📊 ${uniqueEmails.length} unique workers marked attendance today.`;
-      setAiSummary(summary);
-      speak(summary);
-    } catch (err) {
-      console.error('Failed to fetch attendance:', err);
-    }
-  };
-
+  // Fetch workers & descriptors
   useEffect(() => {
-    fetchTodayAttendance();
+    if (!modelsLoaded) return;
+    const loadWorkers = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/workers");
+        const data = await res.json();
+        setWorkers(data);
+
+        const tempDescriptors = [];
+        for (let worker of data) {
+          if (!worker.photo) continue;
+          const img = await faceapi.fetchImage(`http://localhost:5000/uploads/${worker.photo}`);
+          const detection = await faceapi
+            .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+            .withFaceLandmarks()
+            .withFaceDescriptor();
+
+          if (detection) {
+            tempDescriptors.push({
+              email: worker.email,
+              name: worker.name,
+              descriptor: detection.descriptor,
+            });
+          }
+        }
+        setDescriptors(tempDescriptors);
+      } catch (err) {
+        console.error("❌ Error loading workers:", err);
+      }
+    };
+    loadWorkers();
+  }, [modelsLoaded]);
+
+  // Fetch attendance & sites
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const attRes = await fetch("http://localhost:5000/api/attendance/today");
+        setTodayAttendance(await attRes.json());
+
+        const siteRes = await fetch("http://localhost:5000/api/sites");
+        const siteData = await siteRes.json();
+        setSites(siteData);
+      } catch (err) {
+        console.error("❌ Error fetching data:", err);
+      }
+    };
+    fetchData();
   }, []);
 
+  // Face recognition loop
   useEffect(() => {
+    if (!modelsLoaded || !cameraReady || descriptors.length === 0) return;
+
     const interval = setInterval(async () => {
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -75,183 +110,150 @@ const FaceRecognitionPage = () => {
 
       const dims = faceapi.matchDimensions(canvas, {
         width: video.videoWidth,
-        height: video.videoHeight
+        height: video.videoHeight,
       });
-
       canvas.width = dims.width;
       canvas.height = dims.height;
 
       const resized = faceapi.resizeResults(detections, dims);
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       faceapi.draw.drawDetections(canvas, resized);
-      faceapi.draw.drawFaceLandmarks(canvas, resized);
 
-      if (detections.length > 0) {
-        const descriptor = detections[0].descriptor;
-        setDescriptor(descriptor);
+      if (detections.length > 0 && selectedSite) {
+        const liveDescriptor = detections[0].descriptor;
 
-        try {
-          const res = await fetch('http://localhost:5000/api/descriptors');
-          const data = await res.json();
-          const knownFaces = data.map(face => ({
-            email: face.email,
-            descriptor: new Float32Array(face.descriptor),
-          }));
-
-          
-          let matched = false;
-          for (let face of knownFaces) {
-            const storedDescriptor = new Float32Array(face.descriptor);
-            const distance = faceapi.euclideanDistance(descriptor, storedDescriptor);
-            if (distance < 0.5) {
-              if (matchedFace?.email !== face.email) {
-                const msg = `✅ Face matched: ${face.email}`;
-                setStatus(msg);
-                setMatchedFace(face);
-                speak(`Face matched with ${face.email}`);
-                successSound.play().catch(err => console.warn("🔇 Audio play error:", err));
-              }
-              matched = true;
-              break;
-            }
+        let bestMatch = null;
+        let minDistance = 1;
+        for (let worker of descriptors) {
+          const distance = faceapi.euclideanDistance(liveDescriptor, worker.descriptor);
+          if (distance < minDistance) {
+            minDistance = distance;
+            bestMatch = worker;
           }
-
-          if (!matched) {
-            if (matchedFace !== null) {
-              setMatchedFace(null);
-              setStatus("❌ No match found");
-              speak("No match found. Please try again.");
-            }
-          }
-
-        } catch (err) {
-          console.error("Error fetching descriptors:", err);
         }
-      } else {
-        setStatus("😐 No face detected");
+
+        if (bestMatch && minDistance < 0.5) {
+          if (!matchedWorker || matchedWorker.email !== bestMatch.email) {
+            setMatchedWorker(bestMatch);
+            setStatus(`✅ Matched: ${bestMatch.name}`);
+            successSound.play().catch(() => {});
+            await markAttendance(bestMatch.email);
+          }
+        } else {
+          setMatchedWorker(null);
+          setStatus("❌ No match found");
+        }
+      } else if (!selectedSite) {
+        setStatus("⚠ Please select a site!");
       }
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [matchedFace]);
+  }, [descriptors, matchedWorker, cameraReady, selectedSite]);
 
-  const markAttendance = async () => {
-    if (!matchedFace) return alert("No matched face available!");
-
-    const alreadyMarked = todayAttendance.find(a => a.email === matchedFace.email);
-    if (alreadyMarked) {
-      alert("Attendance already marked for this user today!");
-      speak("Attendance already marked.");
-      return;
-    }
+  // Mark attendance
+  const markAttendance = async (emailParam) => {
+    const email = emailParam || matchedWorker?.email;
+    if (!email || !selectedSite) return;
 
     try {
-      setLoading(true);
-      const res = await fetch('http://localhost:5000/api/attendance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: matchedFace.email })
+      const res = await fetch("http://localhost:5000/api/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, siteId: selectedSite }),
       });
       const result = await res.json();
-      alert(result.message);
-      speak(result.message);
-      fetchTodayAttendance();
-      setMatchedFace(null);
-      setStatus('');
-    } catch (err) {
-      console.error("Error marking attendance:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (!res.ok) return alert(result.error || "Server error");
 
-  const saveDescriptor = async () => {
-    if (!descriptor) return alert("No face detected!");
-    const email = prompt("Enter user email to save face:");
-    if (!email) return;
-    try {
-      const res = await fetch('http://localhost:5000/api/save-descriptor', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, descriptor: Array.from(descriptor) })
-      });
-      if (res.ok) {
-        alert("✅ Face saved!");
-        speak("Face saved successfully");
-      } else {
-        alert("❌ Failed to save face!");
-      }
+      const siteName = sites.find((s) => s._id === selectedSite)?.name || "";
+      const newRecord = { email, siteId: selectedSite, siteName, timestamp: new Date() };
+      setTodayAttendance((prev) => [...prev, newRecord]);
+      if (onAttendanceMarked) onAttendanceMarked([newRecord]);
     } catch (err) {
-      console.error("Error saving descriptor:", err);
+      console.error("❌ Error marking attendance:", err);
     }
   };
 
   return (
-    <div className="container py-4">
-      <h3 className="text-center text-primary mb-4">📷 Face Recognition (Live)</h3>
+    <div className="container py-4 face-page">
+      <h3 className="text-center text-primary mb-4">📷 Face Recognition</h3>
 
-      <div className="d-flex justify-content-center mb-4">
-        <div className="position-relative w-100" style={{ maxWidth: '720px' }}>
+      {!modelsLoaded && <p className="text-center text-warning">Loading models...</p>}
+      {!cameraReady && <p className="text-center text-warning">Initializing camera...</p>}
+
+      {/* Site Selection */}
+      <div className="d-flex justify-content-center mb-3">
+        <select
+          value={selectedSite}
+          onChange={(e) => setSelectedSite(e.target.value)}
+          className="form-select w-auto site-select"
+        >
+          <option value="">📌 Please select a site</option>
+          {sites.map((site) => (
+            <option key={site._id} value={site._id}>
+              {site.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Video & Canvas */}
+      <div className="d-flex justify-content-center mb-4 camera-wrapper">
+        <div className="position-relative w-100" style={{ maxWidth: "720px" }}>
           <video
             ref={videoRef}
             autoPlay
             muted
             width="100%"
-            className="img-fluid border rounded"
+            className="img-fluid border rounded shadow-sm"
           />
           <canvas
             ref={canvasRef}
             style={{
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
-              width: '100%',
-              height: '100%',
-              zIndex: 1
+              width: "100%",
+              height: "100%",
+              zIndex: 1,
             }}
           />
         </div>
       </div>
 
-      <p className="text-center fw-bold">{status}</p>
+      <p className="text-center fw-bold status-text">{status}</p>
 
-      {matchedFace && (
-        <div className="alert alert-success text-center">
-          🎉 Matched with: <strong>{matchedFace.email}</strong>
+      {matchedWorker && (
+        <div className="alert alert-success text-center shadow-sm">
+          🎉 Matched with: <strong>{matchedWorker.name}</strong>
         </div>
       )}
 
-      <div className="d-flex flex-wrap justify-content-center gap-3 mb-4">
+      <div className="d-flex justify-content-center mb-4 flex-wrap gap-2">
         <button
-          className="btn btn-primary"
-          onClick={markAttendance}
-          disabled={!matchedFace || loading}
+          className="btn btn-primary btn-lg"
+          onClick={() => markAttendance()}
+          disabled={!matchedWorker}
         >
-          📝 Mark Attendance
-        </button>
-        <button
-          className="btn btn-success"
-          onClick={saveDescriptor}
-          disabled={loading}
-        >
-          💾 Save Face
+          📝 Mark Attendance Manually
         </button>
       </div>
 
-      {aiSummary && (
-        <div className="alert alert-info text-center">
-          🤖 AI Summary: {aiSummary}
-        </div>
-      )}
-
-      <h5 className="mt-4">📋 Today’s Attendance</h5>
-      <ul className="list-group">
+      <h5 className="mt-4 mb-2">📋 Today’s Attendance</h5>
+      <ul className="list-group attendance-list">
         {todayAttendance.length > 0 ? (
           todayAttendance.map((entry, index) => (
-            <li key={`${entry.email}-${entry.timestamp}`} className="list-group-item d-flex justify-content-between flex-wrap">
-              <span>{index + 1}. {entry.email}</span>
-              <small className="text-muted">{new Date(entry.timestamp).toLocaleTimeString()}</small>
+            <li
+              key={`${entry.email}-${entry.timestamp}`}
+              className="list-group-item d-flex justify-content-between flex-wrap align-items-center"
+            >
+              <span>
+                {index + 1}. {entry.email}
+              </span>
+              <small className="text-muted">
+                {new Date(entry.timestamp).toLocaleTimeString()}
+              </small>
             </li>
           ))
         ) : (

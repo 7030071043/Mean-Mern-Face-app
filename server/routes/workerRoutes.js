@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Worker = require('../models/Worker');
+const Attendance = require('../models/Attendance');
 
 // Ensure uploads directory exists once
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -66,5 +67,71 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete worker' });
   }
 });
+
+ 
+// Get all workers present at a site (optionally by date)
+router.get('/attendance/site/:siteId', async (req, res) => {
+  try {
+    const { siteId } = req.params;
+    const { date } = req.query;
+
+    // Filter by date if provided
+    let start, end;
+    if (date) {
+      const localDate = new Date(date);
+      start = new Date(localDate.setHours(0, 0, 0, 0));
+      end = new Date(localDate.setHours(23, 59, 59, 999));
+    }
+
+    const query = { siteId };
+    if (start && end) query.date = { $gte: start, $lte: end };
+
+    // Assuming Attendance model stores workerId and siteId
+    const attendanceRecords = await Attendance.find(query).populate('workerId', 'name email photo');
+
+    // Extract unique workers
+    const workers = attendanceRecords.map(a => a.workerId);
+    const uniqueWorkers = Array.from(new Set(workers.map(w => w._id))).map(
+      id => workers.find(w => w._id === id)
+    );
+
+    res.json(uniqueWorkers);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch workers for site' });
+  }
+});
+
+
+
+// Get workers present today at a specific site
+router.get('/workers/attendance/site/:siteId', async (req, res) => {
+  try {
+    const { siteId } = req.params;
+
+    // Today's date
+    const today = new Date();
+    const start = new Date(today.setHours(0, 0, 0, 0));
+    const end = new Date(today.setHours(23, 59, 59, 999));
+
+    // Attendance records for today at this site
+    const records = await Attendance.find({
+      siteId,
+      checkIn: { $gte: start, $lte: end }
+    });
+
+    // Get unique emails
+    const emails = [...new Set(records.map(r => r.email))];
+
+    // Find corresponding worker details
+    const workers = await Worker.find({ email: { $in: emails } });
+
+    res.json(workers);
+  } catch (err) {
+    console.error('❌ Error fetching workers with attendance:', err);
+    res.status(500).json({ error: 'Failed to fetch workers for site today' });
+  }
+});
+ 
 
 module.exports = router;
