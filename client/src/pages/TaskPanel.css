@@ -1,28 +1,30 @@
-/* Container */
+/* 🧩 Container */
 .task-panel-container {
   max-width: 1200px;
-  margin: auto;
-  padding: 2rem;
+  margin: 2rem auto;
+  padding: 2rem 2.5rem;
   background-color: #f8f9fa;
   border-radius: 1rem;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-  font-family: 'Inter', sans-serif;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  font-family: "Inter", sans-serif;
 }
 
 .task-panel-container h4 {
-  font-size: 2rem;
+  font-size: 1.9rem;
   font-weight: 700;
   color: #0d6efd;
+  text-align: center;
   margin-bottom: 2rem;
 }
 
-/* Grid Layout */
+/* 🧱 Grid Layout */
 .task-panel-grid {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
   gap: 2rem;
 }
 
+/* 🧑 Left Section */
 .task-left label {
   display: block;
   font-weight: 600;
@@ -32,41 +34,72 @@
 
 .task-left input[type="text"],
 .task-left input[type="email"],
-.task-left input[type="date"] {
+.task-left input[type="date"],
+.task-left select {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   border: 1px solid #ced4da;
   margin-bottom: 1rem;
   font-size: 1rem;
-  transition: border 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.task-left input:focus {
+.task-left input:focus,
+.task-left select:focus {
   border-color: #0d6efd;
-  box-shadow: 0 0 0 3px rgba(13,110,253,0.2);
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
 }
 
-/* Voice Button */
+/* 🎤 Voice Button */
 .task-input-voice {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
 }
 
 .btn-voice {
-  padding: 0 1rem;
+  padding: 0.6rem 1rem;
   background-color: #0d6efd;
   color: white;
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
+  font-size: 1.1rem;
+  transition: background-color 0.2s ease;
 }
 
 .btn-voice:hover {
   background-color: #0b5ed7;
 }
 
-/* Assigned Tasks */
+/* 🌐 Language Selection */
+.language-select {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 0.5rem;
+}
+
+.language-select label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.language-select select {
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ced4da;
+  background-color: white;
+  transition: 0.2s;
+}
+
+.language-select select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+}
+
+/* 📋 Assigned Tasks Section */
 .task-right h5 {
   font-size: 1.5rem;
   font-weight: 600;
@@ -79,6 +112,19 @@
   overflow-y: auto;
   list-style: none;
   padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #0d6efd #f8f9fa;
+}
+
+.assigned-tasks::-webkit-scrollbar {
+  width: 6px;
+}
+.assigned-tasks::-webkit-scrollbar-thumb {
+  background-color: #0d6efd;
+  border-radius: 10px;
+}
+.assigned-tasks::-webkit-scrollbar-track {
+  background: #f8f9fa;
 }
 
 .assigned-tasks li {
@@ -88,21 +134,21 @@
   background-color: white;
   padding: 1rem;
   border-radius: 0.75rem;
-  margin-bottom: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin-bottom: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .assigned-tasks li:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
 }
 
-/* Badges */
+/* 🎯 Status Badges */
 .badge-done {
   background-color: #d1e7dd;
   color: #198754;
-  padding: 0.25rem 0.75rem;
+  padding: 0.35rem 0.8rem;
   border-radius: 0.5rem;
   font-weight: 600;
   font-size: 0.875rem;
@@ -111,13 +157,13 @@
 .badge-pending {
   background-color: #fff3cd;
   color: #856404;
-  padding: 0.25rem 0.75rem;
+  padding: 0.35rem 0.8rem;
   border-radius: 0.5rem;
   font-weight: 600;
   font-size: 0.875rem;
 }
 
-/* Complete Button */
+/* ✅ Complete Button */
 .complete-btn {
   background-color: #198754;
   color: white;
@@ -127,13 +173,14 @@
   font-weight: 600;
   cursor: pointer;
   margin-left: 0.5rem;
+  transition: background-color 0.2s ease;
 }
 
 .complete-btn:hover {
   background-color: #157347;
 }
 
-/* Listening Toast */
+/* 🎧 Listening Toast */
 .listening-toast {
   background-color: #e7f1ff;
   color: #0d6efd;
@@ -141,27 +188,38 @@
   border-radius: 0.5rem;
   margin-bottom: 1rem;
   animation: pulse 1.2s infinite;
+  font-weight: 600;
+  text-align: center;
 }
 
 @keyframes pulse {
-  0%,100%{opacity:1;}
-  50%{opacity:0.6;}
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
-/* Responsive */
+/* 📱 Responsive Adjustments */
 @media (max-width: 992px) {
   .task-panel-grid {
     grid-template-columns: 1fr;
   }
 
+  .task-panel-container {
+    padding: 1.5rem;
+  }
+
   .assigned-tasks li {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 0.6rem;
   }
 
   .task-input-voice {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .btn-voice {

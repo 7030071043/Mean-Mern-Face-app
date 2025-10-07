@@ -4,22 +4,46 @@ const fs = require('fs');
 const path = require('path');
 const Task = require('../models/Task');
 
-// ✅ Assign a task (prevents empty values)
 router.post('/assign', async (req, res) => {
-  const { email, task, assignedBy } = req.body;
-  if (!email || !task || !assignedBy) {
-    return res.status(400).json({ error: 'Email, task, and assignedBy are required.' });
+  const { siteId, assignedTo, task, assignedBy } = req.body;
+
+  if (!siteId || !assignedTo || !task || !assignedBy) {
+    return res.status(400).json({ error: 'siteId, assignedTo, task, and assignedBy are required.' });
   }
 
   try {
-    const newTask = new Task({ email, task, assignedBy });
+    const newTask = new Task({ siteId, assignedTo, task, assignedBy });
     await newTask.save();
-    res.status(200).json({ message: 'Task assigned successfully.' });
+    res.status(200).json({ message: '✅ Task assigned successfully.' });
   } catch (err) {
     console.error('❌ Failed to assign task:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// GET /api/tasks?email=&siteId=&date=
+router.get('/', async (req, res) => {
+  try {
+    const { email, siteId, date } = req.query;
+
+    const query = {};
+    if (email) query.assignedTo = email;      // email of worker
+    if (siteId) query.siteId = siteId;       // filter by site
+    if (date) {
+      const localDate = new Date(date);
+      const start = new Date(localDate.setHours(0, 0, 0, 0));
+      const end = new Date(localDate.setHours(23, 59, 59, 999));
+      query.createdAt = { $gte: start, $lte: end };
+    }
+
+    const tasks = await Task.find(query).sort({ createdAt: -1 });
+    res.json(tasks);
+  } catch (err) {
+    console.error('❌ Error fetching filtered tasks:', err);
+    res.status(500).json({ error: 'Error fetching tasks' });
+  }
+});
+
 
 // ✅ Mark a task as completed
 router.post('/complete', async (req, res) => {

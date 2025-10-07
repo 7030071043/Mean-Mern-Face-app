@@ -1,0 +1,220 @@
+.dashboard-container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+  background: linear-gradient(135deg, #eaf4ff, #f8f9fa);
+
+}
+
+.dashboard-title {
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #0078D7;
+}
+
+.card {
+  background: #fff;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.site-form input {
+  width: 30%;
+  padding: 8px 10px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.site-form button {
+  background: #0078D7;
+  border: none;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.select-site-card select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.engineer-section {
+  margin-top: 10px;
+}
+
+.engineer-badge {
+  background: #e8f0fe;
+  color: #0056b3;
+  padding: 5px 10px;
+  border-radius: 8px;
+  margin-left: 6px;
+  font-weight: 500;
+}
+
+.attendance-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.attendance-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding: 10px 0;
+}
+
+.worker-img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.worker-name {
+  font-weight: 600;
+  color: #222;
+  display: block;
+}
+
+.worker-email {
+  font-size: 13px;
+  color: #777;
+}
+
+.task-card .task-stats {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.task-box {
+  flex: 1;
+  text-align: center;
+  border-radius: 10px;
+  padding: 10px;
+  color: white;
+  font-weight: 500;
+}
+
+.task-box.completed {
+  background: #28a745;
+}
+
+.task-box.pending {
+  background: #ffc107;
+  color: #333;
+}
+
+.dpr-card ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+.dpr-item {
+  background: #f7f9fc;
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.download-btn {
+  background: #0078D7;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.download-btn:hover {
+  background: #0056b3;
+}
+
+
+.dpr-card {
+  background: #ffffff;
+  border-radius: 15px;
+  padding: 20px 25px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: 0.3s ease;
+}
+
+.dpr-card h4 {
+  font-weight: 600;
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+  color: #2a2a2a;
+}
+
+.dpr-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8f9fa;
+  padding: 10px 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #e0e0e0;
+}
+
+.dpr-filter label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.dpr-filter input[type="date"] {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background-color: #fff;
+  transition: all 0.2s ease-in-out;
+}
+
+.dpr-filter input[type="date"]:hover,
+.dpr-filter input[type="date"]:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+  outline: none;
+}
+
+.dpr-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.dpr-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #e6e6e6;
+  font-size: 0.95rem;
+}
+
+.download-btn {
+  background: linear-gradient(135deg, #007bff, #0056d2);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+  background: linear-gradient(135deg, #0056d2, #003c99);
+  transform: translateY(-2px);
+}
