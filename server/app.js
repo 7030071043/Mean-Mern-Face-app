@@ -43,7 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 connectDB();
 
 // ✅ API routes
-app.use('/api', authRoutes);
+app.use(authRoutes);
 app.use('/api', faceRoutes);
 app.use('/tasks', taskRoutes);
 app.use('/attendance', attendanceRoutes);

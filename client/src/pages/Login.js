@@ -6,7 +6,7 @@ import { FaHardHat } from 'react-icons/fa';
 const API_URL =
   process.env.REACT_APP_API_URL ||
   (window.location.hostname === "localhost"
-    ? "http://localhost:5000/api"
+    ? "http://localhost:5000"
     : "https://mean-mern-face-app-pbyy.onrender.com");
 
 const Login = () => {

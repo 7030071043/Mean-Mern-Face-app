@@ -20,7 +20,7 @@ const AttendanceHistory = ({ liveAttendance = [] }) => {
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/workers`);
+        const res = await fetch(`${API_URL}/workers`);
         const data = await res.json();
         const map = {};
         data.forEach(worker => {
@@ -38,7 +38,7 @@ const AttendanceHistory = ({ liveAttendance = [] }) => {
   useEffect(() => {
     const fetchSites = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/sites`);
+        const res = await fetch(`${API_URL}/sites`);
         const data = await res.json();
         const map = {};
         data.forEach(site => (map[site._id] = site.name));
@@ -55,7 +55,7 @@ const AttendanceHistory = ({ liveAttendance = [] }) => {
     if (!selectedDate) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/attendance/by-date?date=${selectedDate}`);
+      const res = await fetch(`${API_URL}/attendance/by-date?date=${selectedDate}`);
       const data = await res.json();
       setRecords(data);
 
@@ -87,7 +87,7 @@ const AttendanceHistory = ({ liveAttendance = [] }) => {
   }, [liveAttendance]);
 
   const downloadExcel = () => {
-    const url = `${API_URL}/api/attendance/export${selectedDate ? `?date=${selectedDate}` : ''}`;
+    const url = `${API_URL}/attendance/export${selectedDate ? `?date=${selectedDate}` : ''}`;
     window.open(url, '_blank');
   };
 
@@ -118,7 +118,18 @@ const AttendanceHistory = ({ liveAttendance = [] }) => {
                   return (
                     <li key={`${rec.email}-${idx}`} className="record-item list-group-item d-flex justify-content-between align-items-center flex-wrap">
                       <div className="record-left d-flex align-items-center gap-2">
-                        <img src={worker.photo || downloadImg} alt={worker.name} className="avatar rounded-circle" />
+                        <img
+                          src={worker.photo || downloadImg}
+                          alt={worker.name}
+                           onError={(e) => { e.target.src = downloadImg; }}
+                          style={{
+                            width: 45,
+                            height: 45,
+                            objectFit: 'cover',
+                            borderRadius: '50%',
+                            marginRight: 12,
+                          }}
+                        />
                         <div>
                           <strong>{worker.name || '👤 Unknown'}</strong>
                           <small className="d-block">{rec.email} | {siteName}</small>
