@@ -45,11 +45,11 @@ connectDB();
 // ✅ API routes
 app.use('/api', authRoutes);
 app.use('/api', faceRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/workers', workerRoutes);
-app.use('/api/dpr', dprRoutes);
-app.use('/api/sites', siteRoutes);
+app.use('/tasks', taskRoutes);
+app.use('/attendance', attendanceRoutes);
+app.use('/workers', workerRoutes);
+app.use('/dpr', dprRoutes);
+app.use('/sites', siteRoutes);
 
 // ✅ Static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
