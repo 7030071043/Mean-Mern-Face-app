@@ -19,7 +19,7 @@ const WorkersPage = () => {
   // ✅ Fetch workers
   const fetchWorkers = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/workers`);
+      const res = await fetch(`${API_BASE_URL}/workers`);
       if (!res.ok) throw new Error('Failed to fetch workers');
       const data = await res.json();
       setWorkers(Array.isArray(data) ? data : []);
@@ -60,8 +60,8 @@ const WorkersPage = () => {
     if (form.photo) formData.append('photo', form.photo);
 
     const url = editId
-      ? `${API_BASE_URL}/api/workers/${editId}`
-      : `${API_BASE_URL}/api/workers`;
+      ? `${API_BASE_URL}/workers/${editId}`
+      : `${API_BASE_URL}/workers`;
     const method = editId ? 'PUT' : 'POST';
 
     try {
@@ -86,7 +86,7 @@ const WorkersPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure to delete this worker?')) {
       try {
-        await fetch(`${API_BASE_URL}/api/workers/${id}`, { method: 'DELETE' });
+        await fetch(`${API_BASE_URL}/workers/${id}`, { method: 'DELETE' });
         fetchWorkers();
       } catch (err) {
         console.error("❌ Error deleting worker:", err);
