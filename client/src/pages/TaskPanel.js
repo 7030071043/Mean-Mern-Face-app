@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './TaskPanel.css';
 
+// Automatically detect API URL
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  (window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : 'https://mean-mern-face-app-pbyy.onrender.com');
+
 // Voice recognition setup
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -21,7 +28,7 @@ const TaskPanel = () => {
   useEffect(() => {
     const fetchSites = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/sites');
+        const res = await fetch(`${API_URL}/sites`);
         const data = await res.json();
         setSites(data);
       } catch (err) {
@@ -39,7 +46,7 @@ const TaskPanel = () => {
       if (selectedDate) query += `&date=${selectedDate}`;
       if (siteId) query += `&siteId=${siteId}`;
 
-      const res = await fetch(`http://localhost:5000/api/tasks${query}`);
+      const res = await fetch(`${API_URL}/tasks${query}`);
       const data = await res.json();
       setAssignedTasks(data);
     } catch (err) {
@@ -59,7 +66,7 @@ const TaskPanel = () => {
     if (!task.trim()) return alert('Task cannot be empty.');
 
     try {
-      const res = await fetch('http://localhost:5000/api/tasks/assign', {
+      const res = await fetch(`${API_URL}/tasks/assign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,7 +93,7 @@ const TaskPanel = () => {
   // Mark task as complete
   const completeTask = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/tasks/complete`, {
+      await fetch(`${API_URL}/tasks/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskId: id }),

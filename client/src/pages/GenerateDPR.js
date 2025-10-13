@@ -2,9 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import './GenerateDPR.css'
 
+// Dynamic API URL for localhost or Render
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  (window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : 'https://mean-mern-face-app-pbyy.onrender.com/api');
+
 const GenerateDPR = () => {
   const [formData, setFormData] = useState({
-    siteId: '', // New field for site
+    siteId: '',
     projectName: '',
     date: '',
     subNo: '',
@@ -56,13 +63,11 @@ const GenerateDPR = () => {
 
   const addRow = (section) => {
     const sectionData = formData[section] || [];
-
     const fallbackTemplates = {
       labourReport: { contractor: '', bigaari: '', mistry: '', baai: '', timings: '', hours: '' },
       toolsUsed: { srNo: '', unit: '', qty: '', description: '' },
       deliveryReport: { srNo: '', unit: '', qty: '', description: '' },
     };
-
     const template = sectionData[0] || fallbackTemplates[section] || {};
     const blankRow = Object.fromEntries(Object.keys(template).map(k => [k, '']));
     setFormData({ ...formData, [section]: [...sectionData, blankRow] });
@@ -73,7 +78,7 @@ const GenerateDPR = () => {
       return alert('Please fill Project Name, Date, and Site');
 
     try {
-      const res = await fetch('http://localhost:5000/api/dpr/save', {
+      const res = await fetch(`${API_URL}/dpr/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -81,7 +86,7 @@ const GenerateDPR = () => {
       const result = await res.json();
       if (res.ok) {
         alert('✅ DPR saved successfully!');
-        fetchAllDPRs(); // Refresh table
+        fetchAllDPRs();
       } else {
         alert('❌ Error: ' + result.error);
       }
@@ -92,7 +97,7 @@ const GenerateDPR = () => {
   };
 
   const handleDownload = (date) => {
-    const url = `http://localhost:5000/api/dpr/export?date=${date}`;
+    const url = `${API_URL}/dpr/export?date=${date}`;
     window.open(url, '_blank');
   };
 
@@ -125,10 +130,9 @@ const GenerateDPR = () => {
     recognition.start();
   };
 
-  // --- Fetch all DPRs ---
   const fetchAllDPRs = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/dpr/all');
+      const res = await fetch(`${API_URL}/dpr/all`);
       const data = await res.json();
       if (res.ok) setAllDPRs(data);
     } catch (err) {
@@ -136,10 +140,9 @@ const GenerateDPR = () => {
     }
   };
 
-  // --- Fetch site list ---
   const fetchSiteList = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/sites');
+      const res = await fetch(`${API_URL}/sites`);
       const data = await res.json();
       if (res.ok) setSiteList(data);
     } catch (err) {
@@ -159,7 +162,12 @@ const GenerateDPR = () => {
             <tr key={idx}>
               {columns.map(col => (
                 <td key={col.field}>
-                  <input type="text" className="form-control" value={row[col.field]} onChange={e => handleChange(e, col.field, idx, section)} />
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={row[col.field]}
+                    onChange={e => handleChange(e, col.field, idx, section)}
+                  />
                 </td>
               ))}
             </tr>
@@ -170,7 +178,6 @@ const GenerateDPR = () => {
     </div>
   );
 
-  // --- Filtered DPRs ---
   const filteredDPRs = allDPRs.filter(dpr =>
     (!filterDate || dpr.date === filterDate) &&
     (!filterSite || dpr.siteId === filterSite)
@@ -180,7 +187,7 @@ const GenerateDPR = () => {
     <div className="container py-4">
       <h3 className="mb-4">📝 Daily Progress Report</h3>
 
-      {/* --- Site & Project & Date --- */}
+      {/* Site, Project Name, Date */}
       <div className="row mb-3">
         <div className="col-md-4">
           <label>Site</label>
@@ -199,7 +206,7 @@ const GenerateDPR = () => {
         </div>
       </div>
 
-      {/* --- Existing DPR form fields --- */}
+      {/* Weather, Temp, Humidity, Start-Finish */}
       <div className="row mb-3">
         <div className="col-md-3">
           <label>Weather</label>
@@ -223,12 +230,14 @@ const GenerateDPR = () => {
         </div>
       </div>
 
+      {/* Remarks */}
       <div className="mb-3">
         <label>Remarks</label>
         <textarea className="form-control" rows={3} value={formData.remarks} onChange={e => handleChange(e, 'remarks')} />
         <button className="btn btn-sm btn-outline-secondary mt-1" onClick={() => startVoiceInput('remarks')}>🎤 Speak</button>
       </div>
 
+      {/* Labour, Tools, Delivery Tables */}
       {renderTable('Labour Report', 'labourReport', [
         { label: 'Contractor Name', field: 'contractor' },
         { label: 'Bigaari', field: 'bigaari' },
@@ -252,6 +261,7 @@ const GenerateDPR = () => {
         { label: 'Description', field: 'description' }
       ])}
 
+      {/* Work Sections */}
       <div className="mb-3">
         <label>Today's Work</label>
         <textarea className="form-control" value={formData.todayWork} onChange={e => handleChange(e, 'todayWork')} />
@@ -268,6 +278,7 @@ const GenerateDPR = () => {
         <button className="btn btn-sm btn-outline-secondary mt-1" onClick={() => startVoiceInput('nextWork')}>🎤 Speak</button>
       </div>
 
+      {/* AI Suggestions */}
       {aiSuggestions.length > 0 && (
         <div className="alert alert-warning">
           <strong>🤖 AI Suggestions:</strong>
@@ -277,14 +288,14 @@ const GenerateDPR = () => {
         </div>
       )}
 
+      {/* Save Button */}
       <div className="text-center mb-5">
         <button className="btn btn-primary" onClick={handleSave}>💾 Save DPR</button>
       </div>
 
-      {/* --- Saved DPRs Table --- */}
+      {/* Saved DPRs Table */}
       <div className="mt-5">
         <h4>📋 Saved DPRs</h4>
-
         <div className="mb-3 d-flex gap-2 align-items-center">
           <label>Filter by Site:</label>
           <select className="form-control" style={{ maxWidth: '200px' }} value={filterSite} onChange={e => setFilterSite(e.target.value)}>
@@ -297,41 +308,39 @@ const GenerateDPR = () => {
 
           <button className="btn btn-outline-secondary" onClick={() => { setFilterDate(''); setFilterSite(''); }}>Clear</button>
         </div>
-         <div className='table-responsive'> 
-        <table className="table table-bordered">
-          <thead>
-            <tr>
-              <th>Site</th>
-              <th>Project Name</th>
-              <th>Date</th>
-           
-              <th>Today's Work</th>
-              <th>Completed Work</th>
-              <th>Next Work</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredDPRs.length > 0 ? filteredDPRs.map((dpr, idx) => (
-              <tr key={idx}>
-                <td>{siteList.find(s => s._id === dpr.siteId)?.name || dpr.siteId}</td>
-                <td>{dpr.projectName}</td>
-                <td>{dpr.date}</td>
-                 
-                <td>{dpr.todayWork}</td>
-                <td>{dpr.completedWork}</td>
-                <td>{dpr.nextWork}</td>
-                <td>
-                  <button className="btn btn-sm btn-success" onClick={() => handleDownload(dpr.date)}>⬇️ Download</button>
-                  </td>
-              </tr>
-            )) : (
+        <div className="table-responsive">
+          <table className="table table-bordered">
+            <thead>
               <tr>
-                <td colSpan={8} className="text-center">No DPRs found</td>
+                <th>Site</th>
+                <th>Project Name</th>
+                <th>Date</th>
+                <th>Today's Work</th>
+                <th>Completed Work</th>
+                <th>Next Work</th>
+                <th>Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredDPRs.length > 0 ? filteredDPRs.map((dpr, idx) => (
+                <tr key={idx}>
+                  <td>{siteList.find(s => s._id === dpr.siteId)?.name || dpr.siteId}</td>
+                  <td>{dpr.projectName}</td>
+                  <td>{dpr.date}</td>
+                  <td>{dpr.todayWork}</td>
+                  <td>{dpr.completedWork}</td>
+                  <td>{dpr.nextWork}</td>
+                  <td>
+                    <button className="btn btn-sm btn-success" onClick={() => handleDownload(dpr.date)}>⬇️ Download</button>
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan={8} className="text-center">No DPRs found</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

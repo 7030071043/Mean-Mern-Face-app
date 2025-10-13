@@ -1,6 +1,14 @@
+// client/src/pages/FaceRecognitionPage.js
 import React, { useEffect, useRef, useState } from "react";
 import * as faceapi from "@vladmandic/face-api";
-import './FaceRecognitionPage.css'; // We'll create a CSS file for custom styles
+import './FaceRecognitionPage.css';
+
+// Dynamic API URL for localhost or Render
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  (window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : 'https://mean-mern-face-app-pbyy.onrender.com/api');
 
 const FaceRecognitionPage = ({ onAttendanceMarked }) => {
   const videoRef = useRef(null);
@@ -18,7 +26,7 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
 
   const successSound = new Audio(process.env.PUBLIC_URL + "/success.mp3");
 
-  // Load face-api models
+  // --- Load face-api models ---
   useEffect(() => {
     const loadModels = async () => {
       const MODEL_URL = process.env.PUBLIC_URL + "/models";
@@ -32,7 +40,7 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
     loadModels();
   }, []);
 
-  // Start camera
+  // --- Start camera ---
   useEffect(() => {
     navigator.mediaDevices
       .getUserMedia({ video: true })
@@ -43,19 +51,19 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
       .catch((err) => console.error("Camera error:", err));
   }, []);
 
-  // Fetch workers & descriptors
+  // --- Load workers and descriptors ---
   useEffect(() => {
     if (!modelsLoaded) return;
     const loadWorkers = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/workers");
+        const res = await fetch(`${API_URL}/workers`);
         const data = await res.json();
         setWorkers(data);
 
         const tempDescriptors = [];
         for (let worker of data) {
           if (!worker.photo) continue;
-          const img = await faceapi.fetchImage(`http://localhost:5000/uploads/${worker.photo}`);
+          const img = await faceapi.fetchImage(`${API_URL.replace('/api', '')}/uploads/${worker.photo}`);
           const detection = await faceapi
             .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
             .withFaceLandmarks()
@@ -77,14 +85,14 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
     loadWorkers();
   }, [modelsLoaded]);
 
-  // Fetch attendance & sites
+  // --- Fetch today's attendance & sites ---
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const attRes = await fetch("http://localhost:5000/api/attendance/today");
+        const attRes = await fetch(`${API_URL}/attendance/today`);
         setTodayAttendance(await attRes.json());
 
-        const siteRes = await fetch("http://localhost:5000/api/sites");
+        const siteRes = await fetch(`${API_URL}/sites`);
         const siteData = await siteRes.json();
         setSites(siteData);
       } catch (err) {
@@ -94,7 +102,7 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
     fetchData();
   }, []);
 
-  // Face recognition loop
+  // --- Face recognition loop ---
   useEffect(() => {
     if (!modelsLoaded || !cameraReady || descriptors.length === 0) return;
 
@@ -152,13 +160,13 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
     return () => clearInterval(interval);
   }, [descriptors, matchedWorker, cameraReady, selectedSite]);
 
-  // Mark attendance
+  // --- Mark attendance ---
   const markAttendance = async (emailParam) => {
     const email = emailParam || matchedWorker?.email;
     if (!email || !selectedSite) return;
 
     try {
-      const res = await fetch("http://localhost:5000/api/attendance", {
+      const res = await fetch(`${API_URL}/attendance`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, siteId: selectedSite }),

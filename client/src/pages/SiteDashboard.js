@@ -2,6 +2,13 @@ import React, { useEffect, useState } from "react";
 import downloadImg from "../Assets/download.png";
 import "./SiteDashboard.css";
 
+// Automatically detect API URL
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:5000/api"
+    : "https://mean-mern-face-app-pbyy.onrender.com");
+
 const SiteDashboard = () => {
   const [sites, setSites] = useState([]);
   const [selectedSite, setSelectedSite] = useState("");
@@ -27,8 +34,7 @@ const SiteDashboard = () => {
 
   const fetchSiteWorkers = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/workers");
-      const data = await res.json();
+      const data = await fetchJsonArray(`${API_URL}/workers`);
       const map = {};
       data.forEach((worker) => {
         map[worker.email] = { name: worker.name, photo: downloadImg };
@@ -40,16 +46,16 @@ const SiteDashboard = () => {
   };
 
   const fetchSites = async () => {
-    const data = await fetchJsonArray("http://localhost:5000/api/sites");
+    const data = await fetchJsonArray(`${API_URL}/sites`);
     setSites(data);
   };
 
   const fetchSiteDetails = async (siteId) => {
     setLoading(true);
     const [a, t, d] = await Promise.all([
-      fetchJsonArray(`http://localhost:5000/api/attendance/site/${siteId}/today`),
-      fetchJsonArray(`http://localhost:5000/api/tasks/site/${siteId}`),
-      fetchJsonArray(`http://localhost:5000/api/dpr/site/${siteId}`),
+      fetchJsonArray(`${API_URL}/attendance/site/${siteId}/today`),
+      fetchJsonArray(`${API_URL}/tasks/site/${siteId}`),
+      fetchJsonArray(`${API_URL}/dpr/site/${siteId}`),
     ]);
     setAttendance(a);
     setTasks(t);
@@ -93,7 +99,9 @@ const SiteDashboard = () => {
             value={newSite.description}
             onChange={(e) => setNewSite({ ...newSite, description: e.target.value })}
           />
-          <button class="mt-4" onClick={() => alert("Add functionality already defined!")}>Add Site</button>
+          <button className="mt-4" onClick={() => alert("Add functionality already defined!")}>
+            Add Site
+          </button>
         </div>
       </div>
 
@@ -205,10 +213,9 @@ const SiteDashboard = () => {
             <button
               className="download-btn"
               onClick={() => {
-                if (!dprFilterDate)
-                  return alert("Please select a date for DPR export");
+                if (!dprFilterDate) return alert("Please select a date for DPR export");
                 window.open(
-                  `http://localhost:5000/api/dpr/export?date=${dprFilterDate}&siteId=${selectedSite}`,
+                  `${API_URL}/dpr/export?date=${dprFilterDate}&siteId=${selectedSite}`,
                   "_blank"
                 );
               }}
@@ -216,7 +223,6 @@ const SiteDashboard = () => {
               ⬇️ Download Excel
             </button>
           </div>
-
         </>
       )}
     </div>
