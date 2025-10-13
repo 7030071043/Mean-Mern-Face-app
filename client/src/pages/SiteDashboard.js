@@ -93,7 +93,7 @@ const SiteDashboard = () => {
             value={newSite.description}
             onChange={(e) => setNewSite({ ...newSite, description: e.target.value })}
           />
-          <button class = "mt-4" onClick={() => alert("Add functionality already defined!")}>Add Site</button>
+          <button class="mt-4" onClick={() => alert("Add functionality already defined!")}>Add Site</button>
         </div>
       </div>
 
@@ -175,47 +175,47 @@ const SiteDashboard = () => {
           </div>
 
           {/* DPR Section */}
-         <div className="card dpr-card">
-  <h4>📊 Daily Progress Report</h4>
+          <div className="card dpr-card">
+            <h4>📊 Daily Progress Report</h4>
 
-  <div className="dpr-filter">
-    <label htmlFor="dprDate">📅 Select Date:</label>
-    <input
-      id="dprDate"
-      type="date"
-      value={dprFilterDate}
-      onChange={(e) => setDprFilterDate(e.target.value)}
-    />
-  </div>
+            <div className="dpr-filter">
+              <label htmlFor="dprDate">📅 Select Date:</label>
+              <input
+                id="dprDate"
+                type="date"
+                value={dprFilterDate}
+                onChange={(e) => setDprFilterDate(e.target.value)}
+              />
+            </div>
 
-  <ul className="dpr-list">
-    {dprs
-      .filter(
-        (d) =>
-          !dprFilterDate ||
-          new Date(d.date).toDateString() === new Date(dprFilterDate).toDateString()
-      )
-      .map((dpr, i) => (
-        <li key={i} className="dpr-item">
-          <strong>{dpr.projectName}</strong> — {dpr.todayWork}
-        </li>
-      ))}
-  </ul>
+            <ul className="dpr-list">
+              {dprs
+                .filter(
+                  (d) =>
+                    !dprFilterDate ||
+                    new Date(d.date).toDateString() === new Date(dprFilterDate).toDateString()
+                )
+                .map((dpr, i) => (
+                  <li key={i} className="dpr-item">
+                    <strong>{dpr.projectName}</strong> — {dpr.todayWork}
+                  </li>
+                ))}
+            </ul>
 
-  <button
-    className="download-btn"
-    onClick={() => {
-      if (!dprFilterDate)
-        return alert("Please select a date for DPR export");
-      window.open(
-        `http://localhost:5000/api/dpr/export?date=${dprFilterDate}&siteId=${selectedSite}`,
-        "_blank"
-      );
-    }}
-  >
-    ⬇️ Download Excel
-  </button>
-</div>
+            <button
+              className="download-btn"
+              onClick={() => {
+                if (!dprFilterDate)
+                  return alert("Please select a date for DPR export");
+                window.open(
+                  `http://localhost:5000/api/dpr/export?date=${dprFilterDate}&siteId=${selectedSite}`,
+                  "_blank"
+                );
+              }}
+            >
+              ⬇️ Download Excel
+            </button>
+          </div>
 
         </>
       )}
