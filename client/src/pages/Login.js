@@ -7,7 +7,7 @@ const API_URL =
   process.env.REACT_APP_API_URL ||
   (window.location.hostname === "localhost"
     ? "http://localhost:5000/api"
-    : "https://mean-mern-face-app-pbyy.onrender.com/api");
+    : "https://mean-mern-face-app-pbyy.onrender.com");
 
 const Login = () => {
   const [email, setEmail] = useState('');
