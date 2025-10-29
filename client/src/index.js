@@ -5,48 +5,52 @@ import Login from './pages/Login';
 import MainLayout from './pages/MainLayout';
 import Register from './pages/Register';
 import FaceRecognitionPage from './pages/FaceRecognitionPage';
- 
 import WorkersPage from './pages/WorkersPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import TaskPanel from './pages/TaskPanel';
 import AttendanceHistory from './pages/AttendanceHistory';
 import GenerateDPR from './pages/GenerateDPR';
-import SiteDashboard from './pages/SiteDashboard';
+import SiteDashboard from './pages/SiteDashboard';  
+import HomeButton from './components/HomeButton';
+import "@fortawesome/fontawesome-free/css/all.min.css";
 
 
 const App = () => (
   <BrowserRouter>
+    {/* ✅ Place HomeButton OUTSIDE Routes */}
+
+    <HomeButton />
     <Routes>
-      { /* ✅ Redirect root "/" to "/login" */}
+      {/* ✅ Redirect root "/" to "/login" */}
       <Route path="/" element={<Navigate to="/login" />} />
 
-      {/* ✅ Login route */}
+      {/* ✅ Login & Register routes */}
       <Route path="/login" element={<Login />} />
-      
-      {/* ✅ Register route */}
       <Route path="/register" element={<Register />} /> 
 
-      <Route path="/main" element={<MainLayout />}/>
+      {/* ✅ Main Layout */}
+      <Route path="/main" element={<MainLayout />} />
 
-  
-      <Route path="/save-descriptor" element={<FaceRecognitionPage />}/>
+      {/* ✅ Face Recognition */}
+      <Route path="/save-descriptor" element={<FaceRecognitionPage />} />
     
-      {/* ✅ SiteDashboard */}
-       { <Route path="/siteRoutes" element={<SiteDashboard />} /> }
+      {/* ✅ Site Dashboard */}
+      <Route path="/siteRoutes" element={<SiteDashboard />} />
 
       {/* ✅ Workers management */}
       <Route path="/workers" element={<WorkersPage />} />
 
-      <Route path ="/taskRoutes" element={<TaskPanel/>}/>
-     
-     <Route path='/attendanceRoutes' element={<AttendanceHistory/>}/>
+      {/* ✅ Task Panel */}
+      <Route path="/taskRoutes" element={<TaskPanel />} />
 
-     <Route path='/dprRoutes' element={<GenerateDPR/>}/>
+      {/* ✅ Attendance History */}
+      <Route path="/attendanceRoutes" element={<AttendanceHistory />} />
 
+      {/* ✅ DPR Generation */}
+      <Route path="/dprRoutes" element={<GenerateDPR />} />
     </Routes>
   </BrowserRouter>
 );
 
-// Mount the app
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);

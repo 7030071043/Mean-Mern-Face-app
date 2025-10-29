@@ -84,9 +84,30 @@ const GenerateDPR = () => {
         body: JSON.stringify(formData)
       });
       const result = await res.json();
+
       if (res.ok) {
         alert('✅ DPR saved successfully!');
-        fetchAllDPRs();
+        // ✅ Reset all form fields after save
+        setFormData({
+          siteId: '',
+          projectName: '',
+          date: '',
+          subNo: '',
+          weather: '',
+          temperature: '',
+          humidity: '',
+          start: '',
+          finish: '',
+          remarks: '',
+          labourReport: [{ contractor: '', bigaari: '', mistry: '', baai: '', timings: '', hours: '' }],
+          toolsUsed: [{ srNo: '', unit: '', qty: '', description: '' }],
+          deliveryReport: [{ srNo: '', unit: '', qty: '', description: '' }],
+          todayWork: '',
+          completedWork: '',
+          nextWork: ''
+        });
+        // ✅ Refresh only when filter is applied
+        if (filterSite || filterDate) fetchAllDPRs();
       } else {
         alert('❌ Error: ' + result.error);
       }
@@ -95,6 +116,7 @@ const GenerateDPR = () => {
       alert('❌ Failed to save DPR');
     }
   };
+
 
   const handleDownload = (date) => {
     const url = `${API_URL}/dpr/export?date=${date}`;
@@ -296,53 +318,92 @@ const GenerateDPR = () => {
       {/* Saved DPRs Table */}
       <div className="mt-5">
         <h4>📋 Saved DPRs</h4>
-        <div className="mb-3 d-flex gap-2 align-items-center">
+
+        {/* 🔍 Filter controls */}
+        <div className="mb-3 d-flex flex-wrap gap-2 align-items-center">
           <label>Filter by Site:</label>
-          <select className="form-control" style={{ maxWidth: '200px' }} value={filterSite} onChange={e => setFilterSite(e.target.value)}>
-            <option value="">All Sites</option>
-            {siteList.map(site => <option key={site._id} value={site._id}>{site.name}</option>)}
+          <select
+            className="form-control"
+            style={{ maxWidth: '200px' }}
+            value={filterSite}
+            onChange={e => setFilterSite(e.target.value)}
+          >
+            <option value="">Select Site</option>
+            {siteList.map(site => (
+              <option key={site._id} value={site._id}>{site.name}</option>
+            ))}
           </select>
 
           <label>Filter by Date:</label>
-          <input type="date" className="form-control" style={{ maxWidth: '200px' }} value={filterDate} onChange={e => setFilterDate(e.target.value)} />
+          <input
+            type="date"
+            className="form-control"
+            style={{ maxWidth: '200px' }}
+            value={filterDate}
+            onChange={e => setFilterDate(e.target.value)}
+          />
 
-          <button className="btn btn-outline-secondary" onClick={() => { setFilterDate(''); setFilterSite(''); }}>Clear</button>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => { setFilterDate(''); setFilterSite(''); }}
+          >
+            Clear
+          </button>
         </div>
-        <div className="table-responsive">
-          <table className="table table-bordered">
-            <thead>
-              <tr>
-                <th>Site</th>
-                <th>Project Name</th>
-                <th>Date</th>
-                <th>Today's Work</th>
-                <th>Completed Work</th>
-                <th>Next Work</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredDPRs.length > 0 ? filteredDPRs.map((dpr, idx) => (
-                <tr key={idx}>
-                  <td>{siteList.find(s => s._id === dpr.siteId)?.name || dpr.siteId}</td>
-                  <td>{dpr.projectName}</td>
-                  <td>{dpr.date}</td>
-                  <td>{dpr.todayWork}</td>
-                  <td>{dpr.completedWork}</td>
-                  <td>{dpr.nextWork}</td>
-                  <td>
-                    <button className="btn btn-sm btn-success" onClick={() => handleDownload(dpr.date)}>⬇️ Download</button>
-                  </td>
-                </tr>
-              )) : (
+
+        {/* ✅ DPR table logic */}
+        {filterSite ? (
+          <div className="table-responsive">
+            <table className="table table-bordered">
+              <thead>
                 <tr>
-                  <td colSpan={8} className="text-center">No DPRs found</td>
+                  <th>Site</th>
+                  <th>Project Name</th>
+                  <th>Date</th>
+                  <th>Today's Work</th>
+                  <th>Completed Work</th>
+                  <th>Next Work</th>
+                  <th>Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredDPRs.length > 0 ? (
+                  filteredDPRs
+                    .sort((a, b) => new Date(b.date) - new Date(a.date)) // latest first
+                    .map((dpr, idx) => (
+                      <tr key={idx}>
+                        <td>{siteList.find(s => s._id === dpr.siteId)?.name || dpr.siteId}</td>
+                        <td>{dpr.projectName}</td>
+                        <td>{dpr.date}</td>
+                        <td>{dpr.todayWork}</td>
+                        <td>{dpr.completedWork}</td>
+                        <td>{dpr.nextWork}</td>
+                        <td>
+                          <button
+                            className="btn btn-sm btn-success"
+                            onClick={() => handleDownload(dpr.date)}
+                          >
+                            ⬇️ Download
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="text-center text-muted">
+                      {filterDate ? 'No DPR found for this date' : 'No DPRs found for this site'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-center text-muted mt-3">🔍 Select a site to view DPRs</p>
+        )}
       </div>
+
+
     </div>
   );
 };

@@ -31,6 +31,34 @@ const SiteDashboard = () => {
       return [];
     }
   };
+  const addNewSite = async () => {
+    if (!newSite.name || !newSite.location) {
+      alert("Please fill in all required fields!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/sites`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newSite),
+      });
+
+      if (!res.ok) throw new Error("Failed to add site");
+
+      const data = await res.json();
+      alert("✅ Site added successfully!");
+      setNewSite({ name: "", location: "", description: "" });
+      fetchSites(); // refresh site list
+    } catch (err) {
+      console.error("❌ Error adding site:", err);
+      alert("Failed to add site!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const fetchSiteWorkers = async () => {
     try {
@@ -99,7 +127,7 @@ const SiteDashboard = () => {
             value={newSite.description}
             onChange={(e) => setNewSite({ ...newSite, description: e.target.value })}
           />
-          <button className="mt-4" onClick={() => alert("Add functionality already defined!")}>
+          <button className="mt-4" onClick={addNewSite}>
             Add Site
           </button>
         </div>

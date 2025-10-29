@@ -32,11 +32,15 @@ const WorkersPage = () => {
     fetchWorkers();
   }, []);
 
-  // ✅ Handle Input
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setForm((prev) => ({ ...prev, [name]: files ? files[0] : value }));
+    if (name === "photo") {
+      setForm({ ...form, photo: files[0] });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
+
 
   // ✅ Capture Photo
   const capturePhoto = () => {
@@ -50,31 +54,35 @@ const WorkersPage = () => {
       });
   };
 
-  // ✅ Add or Edit Worker
+  // ✅ Add or Edit Worker 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('name', form.name);
     formData.append('email', form.email);
     formData.append('status', form.status);
-    if (form.photo) formData.append('photo', form.photo);
-
-    const url = editId
-      ? `${API_BASE_URL}/workers/${editId}`
-      : `${API_BASE_URL}/workers`;
-    const method = editId ? 'PUT' : 'POST';
+    if (form.photo) formData.append('photo', form.photo); // important
 
     try {
-      const res = await fetch(url, { method, body: formData });
-      if (!res.ok) throw new Error('Failed to save worker');
-      await fetchWorkers();
+      const res = await fetch(`${API_BASE_URL}/workers/add-worker`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('Server responded with:', data);
+        throw new Error(data.error || 'Failed to save worker');
+      }
+
+      console.log('✅ Worker saved:', data.worker);
       setForm({ name: '', email: '', photo: null, status: 'active' });
-      setEditId(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      fetchWorkers();
     } catch (err) {
-      console.error("❌ Error saving worker:", err);
+      console.error('❌ Error saving worker:', err);
     }
   };
+
 
   // ✅ Edit Worker
   const handleEdit = (worker) => {
@@ -228,18 +236,31 @@ const WorkersPage = () => {
                     <img
                       src={
                         worker.photo
-                          ? `${API_BASE_URL}/uploads/${worker.photo}`
-                          : '/default-user.png'
+                          ? worker.photo.startsWith('http')
+                            ? worker.photo // ✅ Cloudinary hosted image
+                            : `${API_BASE_URL}${worker.photo}` // ✅ Local uploads
+                          : '/default-user.png' // 🧩 fallback image
                       }
-                      alt="profile"
+                      alt={worker.name}
                       style={{
                         width: 45,
                         height: 45,
                         objectFit: 'cover',
                         borderRadius: '50%',
                         marginRight: 12,
+                        border: '2px solid #ddd',
+                      }}
+                      onError={(e) => {
+                        e.target.src = '/default-user.png';
                       }}
                     />
+
+
+
+
+
+
+
                     <div>
                       <strong>{worker.name}</strong> <br />
                       <small className="text-muted">{worker.email}</small>

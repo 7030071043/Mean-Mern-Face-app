@@ -4,11 +4,17 @@ import * as faceapi from "@vladmandic/face-api";
 import './FaceRecognitionPage.css';
 
 // Dynamic API URL for localhost or Render
+
+
+// 🌍 Auto-detect API base
 const API_URL =
-  process.env.REACT_APP_API_URL ||
-  (window.location.hostname === 'localhost'
-    ? 'http://localhost:5000/api'
-    : 'https://mean-mern-face-app-pbyy.onrender.com/api');
+  process.env.REACT_APP_API_URL || "http://localhost:5000";
+
+// const API_URL =
+//   process.env.REACT_APP_API_URL ||
+//   (window.location.hostname === 'localhost'
+//     ? 'http://localhost:5000/api'
+//     : 'https://mean-mern-face-app-pbyy.onrender.com/api');
 
 const FaceRecognitionPage = ({ onAttendanceMarked }) => {
   const videoRef = useRef(null);
@@ -63,7 +69,14 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
         const tempDescriptors = [];
         for (let worker of data) {
           if (!worker.photo) continue;
-          const img = await faceapi.fetchImage(`${API_URL.replace('/api', '')}/uploads/${worker.photo}`);
+
+ 
+          const baseUrl = API_URL.replace('/api', '');
+          const photoUrl = worker.photo.startsWith('http')
+            ? worker.photo
+            : `${baseUrl}${worker.photo.startsWith('/') ? '' : '/'}${worker.photo}`;
+          const img = await faceapi.fetchImage(photoUrl);
+
           const detection = await faceapi
             .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
             .withFaceLandmarks()
@@ -145,7 +158,7 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
           if (!matchedWorker || matchedWorker.email !== bestMatch.email) {
             setMatchedWorker(bestMatch);
             setStatus(`✅ Matched: ${bestMatch.name}`);
-            successSound.play().catch(() => {});
+            successSound.play().catch(() => { });
             await markAttendance(bestMatch.email);
           }
         } else {
