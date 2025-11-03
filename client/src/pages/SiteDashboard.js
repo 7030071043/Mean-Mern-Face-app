@@ -59,7 +59,14 @@ const SiteDashboard = () => {
     }
   };
 
-
+ const formatDateYYYYMMDD = (d) => {
+  if (!d) return '';
+  const date = new Date(d);
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
   const fetchSiteWorkers = async () => {
     try {
       const data = await fetchJsonArray(`${API_URL}/workers`);
@@ -210,7 +217,7 @@ const SiteDashboard = () => {
             </div>
           </div>
 
-          {/* DPR Section */}
+          {/* 📊 DPR Section */}
           <div className="card dpr-card">
             <h4>📊 Daily Progress Report</h4>
 
@@ -224,33 +231,45 @@ const SiteDashboard = () => {
               />
             </div>
 
-            <ul className="dpr-list">
-              {dprs
-                .filter(
-                  (d) =>
-                    !dprFilterDate ||
-                    new Date(d.date).toDateString() === new Date(dprFilterDate).toDateString()
-                )
-                .map((dpr, i) => (
-                  <li key={i} className="dpr-item">
-                    <strong>{dpr.projectName}</strong> — {dpr.todayWork}
-                  </li>
-                ))}
-            </ul>
+            {(() => {
+              const selectedDate = dprFilterDate
+                ? new Date(dprFilterDate)
+                : new Date(); // default = today
+              const filteredDprs = dprs.filter(
+                (d) =>
+                  new Date(d.date).toDateString() === selectedDate.toDateString()
+              );
 
-            <button
-              className="download-btn"
-              onClick={() => {
-                if (!dprFilterDate) return alert("Please select a date for DPR export");
-                window.open(
-                  `${API_URL}/dpr/export?date=${dprFilterDate}&siteId=${selectedSite}`,
-                  "_blank"
-                );
-              }}
-            >
-              ⬇️ Download Excel
-            </button>
+              return filteredDprs.length > 0 ? (
+                <>
+                  <ul className="dpr-list">
+                    {filteredDprs.map((dpr, i) => (
+                      <li key={i} className="dpr-item">
+                        <strong>{dpr.projectName}</strong> — {dpr.todayWork}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    className="download-btn"
+                    onClick={() => {
+                      if (!selectedSite) return alert('Please select a site first.');
+                      const dateParam = formatDateYYYYMMDD(dprFilterDate || new Date());
+                      const url = `${API_URL}/dpr/export?date=${encodeURIComponent(dateParam)}&siteId=${encodeURIComponent(selectedSite)}`;
+                      // open in a new tab
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    ⬇️ Download Excel
+                  </button>
+                </>
+              ) : (
+                <p className="text-muted text-center">
+                  No DPR available for {selectedDate.toLocaleDateString()}.
+                </p>
+              );
+            })()}
           </div>
+
         </>
       )}
     </div>

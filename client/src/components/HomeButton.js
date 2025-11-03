@@ -20,10 +20,18 @@ const HomeButton = () => {
 
   if (!allowedPaths.includes(location.pathname)) return null;
 
+  const handleHomeClick = () => {
+    navigate("/main");
+    // ✅ Wait a bit to let navigation complete before refreshing
+    setTimeout(() => {
+      window.location.reload();
+    }, 200);
+  };
+
   return (
     <button
       className="home-floating-btn"
-      onClick={() => navigate("/main")}
+      onClick={handleHomeClick}
       title="Go to Home"
     >
       <i className="fas fa-home"></i>

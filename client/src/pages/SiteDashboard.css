@@ -1,220 +1,289 @@
-.dashboard-container {
-  max-width: 1100px;
-  margin: auto;
-  padding: 20px;
-  font-family: 'Poppins', sans-serif;
-  color: #333;
-  background: linear-gradient(135deg, #eaf4ff, #f8f9fa);
+/* =============================
+   🌐 Site Dashboard — Modern SaaS Design
+   ============================= */
 
+.dashboard-container {
+  background: linear-gradient(135deg, #f8f9fb, #eef3ff);
+  min-height: 100vh;
+  padding: 2.5rem 1rem;
+  font-family: "Inter", "Segoe UI", Roboto, sans-serif;
 }
 
 .dashboard-title {
+  font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 20px;
+  color: #0d6efd;
   text-align: center;
-  color: #0078D7;
+  margin-bottom: 2.5rem;
 }
 
+/* === Card === */
 .card {
   background: #fff;
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 25px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-.site-form input {
-  width: 30%;
-  padding: 8px 10px;
-  margin-right: 10px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-}
-
-.site-form button {
-  background: #0078D7;
   border: none;
-  color: white;
-  padding: 8px 15px;
-  border-radius: 10px;
-  cursor: pointer;
+  border-radius: 1rem;
+  padding: 1.8rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.select-site-card select {
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+}
+
+/* === Input and Buttons === */
+.site-form input,
+.select-site-card select,
+.dpr-filter input[type="date"] {
   width: 100%;
-  padding: 10px;
-  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  border-radius: 0.6rem;
+  border: 1px solid #ced4da;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.site-form input:focus,
+.select-site-card select:focus,
+.dpr-filter input:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+  outline: none;
+}
+
+button,
+.download-btn {
+  display: inline-block;
+  background: #0d6efd;
+  color: white;
+  font-weight: 600;
+  padding: 0.7rem 1.4rem;
+  border: none;
+  border-radius: 0.6rem;
+  transition: background 0.2s, transform 0.15s;
+}
+
+button:hover,
+.download-btn:hover {
+  background: #0b5ed7;
+  transform: translateY(-1px);
+}
+
+/* === Add Site Section === */
+.new-site-card h4 {
+  color: #0d6efd;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.site-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* === Site Selector === */
+.select-site-card label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
 }
 
 .engineer-section {
-  margin-top: 10px;
+  margin-top: 1rem;
+}
+
+.engineer-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
 }
 
 .engineer-badge {
-  background: #e8f0fe;
-  color: #0056b3;
-  padding: 5px 10px;
-  border-radius: 8px;
-  margin-left: 6px;
+  background: #e7f1ff;
+  color: #0d6efd;
   font-weight: 500;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* === Attendance Section === */
+.attendance-card h4 {
+  font-weight: 600;
+  color: #198754;
+  margin-bottom: 1rem;
 }
 
 .attendance-card ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .attendance-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #eee;
-  padding: 10px 0;
+  background: #f8f9fa;
+  border-radius: 0.75rem;
+  padding: 0.8rem 1.2rem;
+  margin-bottom: 0.75rem;
+  transition: background 0.2s;
+  gap: 1rem;
+}
+
+.attendance-item:hover {
+  background: #eef3ff;
+}
+
+/* ✅ Fixed Alignment for Email + Time */
+.attendance-info {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.attendance-info div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .worker-img {
-  width: 45px;
-  height: 45px;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
   border-radius: 50%;
-  margin-right: 10px;
+  border: 2px solid #0d6efd;
+  flex-shrink: 0;
 }
 
 .worker-name {
   font-weight: 600;
-  color: #222;
-  display: block;
+  color: #212529;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .worker-email {
-  font-size: 13px;
-  color: #777;
+  font-size: 0.9rem;
+  color: #6c757d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px; /* Keeps long emails tidy */
 }
 
-.task-card .task-stats {
+.attendance-time {
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 0.95rem;
+  color: #495057;
+  font-weight: 600;
+  min-width: 90px;
+}
+
+/* === Task Summary === */
+.task-card h4 {
+  color: #0d6efd;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+}
+
+.task-stats {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 1rem;
+  justify-content: space-around;
 }
 
 .task-box {
   flex: 1;
   text-align: center;
-  border-radius: 10px;
-  padding: 10px;
-  color: white;
-  font-weight: 500;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
 }
 
 .task-box.completed {
-  background: #28a745;
+  background: #e8f5e9;
+  color: #198754;
 }
 
 .task-box.pending {
-  background: #ffc107;
-  color: #333;
+  background: #fff3cd;
+  color: #856404;
 }
 
-.dpr-card ul {
-  list-style: none;
-  padding: 0;
-  margin-top: 10px;
-}
-
-.dpr-item {
-  background: #f7f9fc;
-  margin-bottom: 8px;
-  padding: 10px;
-  border-radius: 8px;
-}
-
-.download-btn {
-  background: #0078D7;
-  color: white;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 8px;
-  margin-top: 10px;
-  cursor: pointer;
-}
-
-.download-btn:hover {
-  background: #0056b3;
-}
-
-
-.dpr-card {
-  background: #ffffff;
-  border-radius: 15px;
-  padding: 20px 25px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  transition: 0.3s ease;
-}
-
+/* === DPR Section === */
 .dpr-card h4 {
+  color: #0d6efd;
   font-weight: 600;
-  font-size: 1.3rem;
-  margin-bottom: 15px;
-  color: #2a2a2a;
+  margin-bottom: 1.2rem;
 }
 
 .dpr-filter {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #f8f9fa;
-  padding: 10px 15px;
-  border-radius: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #e0e0e0;
-}
-
-.dpr-filter label {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #333;
-}
-
-.dpr-filter input[type="date"] {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 0.95rem;
-  cursor: pointer;
-  background-color: #fff;
-  transition: all 0.2s ease-in-out;
-}
-
-.dpr-filter input[type="date"]:hover,
-.dpr-filter input[type="date"]:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
-  outline: none;
+  margin-bottom: 1rem;
 }
 
 .dpr-list {
   list-style: none;
-  padding-left: 0;
-  margin-bottom: 20px;
+  padding: 0;
+  margin: 0;
 }
 
 .dpr-item {
-  padding: 8px 0;
-  border-bottom: 1px solid #e6e6e6;
-  font-size: 0.95rem;
+  background: #f8f9fa;
+  border-radius: 0.75rem;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.6rem;
+  color: #495057;
+  font-weight: 500;
 }
 
-.download-btn {
-  background: linear-gradient(135deg, #007bff, #0056d2);
-  color: white;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
+/* === Loading Text === */
+.loading {
+  text-align: center;
+  color: #6c757d;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  margin: 1rem 0;
 }
 
-.download-btn:hover {
-  background: linear-gradient(135deg, #0056d2, #003c99);
-  transform: translateY(-2px);
+/* === Responsive === */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1.2rem;
+  }
+
+  .attendance-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .attendance-time {
+    text-align: left;
+  }
+
+  .task-stats {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .task-box {
+    font-size: 0.95rem;
+  }
+
+  button,
+  .download-btn {
+    width: 100%;
+    text-align: center;
+  }
 }

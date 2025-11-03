@@ -12,8 +12,8 @@ const Register = () => {
 const API_URL =
   process.env.REACT_APP_API_URL ||
   (window.location.hostname === "localhost"
-    ? "http://localhost:5000/api"
-    : "https://mean-mern-face-app-pbyy.onrender.com/api");
+    ? "http://localhost:5000"
+    : "https://mean-mern-face-app-pbyy.onrender.com");
 
   const handleRegister = async (e) => {
     e.preventDefault();

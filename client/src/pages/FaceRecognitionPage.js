@@ -1,20 +1,8 @@
-// client/src/pages/FaceRecognitionPage.js
 import React, { useEffect, useRef, useState } from "react";
 import * as faceapi from "@vladmandic/face-api";
-import './FaceRecognitionPage.css';
+import "./FaceRecognitionPage.css";
 
-// Dynamic API URL for localhost or Render
-
-
-// 🌍 Auto-detect API base
-const API_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000";
-
-// const API_URL =
-//   process.env.REACT_APP_API_URL ||
-//   (window.location.hostname === 'localhost'
-//     ? 'http://localhost:5000/api'
-//     : 'https://mean-mern-face-app-pbyy.onrender.com/api');
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const FaceRecognitionPage = ({ onAttendanceMarked }) => {
   const videoRef = useRef(null);
@@ -41,6 +29,7 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
         faceapi.nets.faceLandmark68Net.loadFromUri(`${MODEL_URL}/face_landmark_68`),
         faceapi.nets.faceRecognitionNet.loadFromUri(`${MODEL_URL}/face_recognition`),
       ]);
+      // console.log("✅ Models loaded");
       setModelsLoaded(true);
     };
     loadModels();
@@ -60,6 +49,7 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
   // --- Load workers and descriptors ---
   useEffect(() => {
     if (!modelsLoaded) return;
+
     const loadWorkers = async () => {
       try {
         const res = await fetch(`${API_URL}/workers`);
@@ -67,34 +57,44 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
         setWorkers(data);
 
         const tempDescriptors = [];
+
         for (let worker of data) {
           if (!worker.photo) continue;
 
- 
-          const baseUrl = API_URL.replace('/api', '');
-          const photoUrl = worker.photo.startsWith('http')
-            ? worker.photo
-            : `${baseUrl}${worker.photo.startsWith('/') ? '' : '/'}${worker.photo}`;
-          const img = await faceapi.fetchImage(photoUrl);
+          try {
+            // ✅ Directly use Cloudinary photo URL
+            const photoUrl = worker.photo;
+            // console.log("🖼 Loading face for:", worker.name, photoUrl);
 
-          const detection = await faceapi
-            .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
-            .withFaceLandmarks()
-            .withFaceDescriptor();
+            const img = await faceapi.fetchImage(photoUrl);
 
-          if (detection) {
-            tempDescriptors.push({
-              email: worker.email,
-              name: worker.name,
-              descriptor: detection.descriptor,
-            });
+            const detection = await faceapi
+              .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+              .withFaceLandmarks()
+              .withFaceDescriptor();
+
+            if (detection) {
+              tempDescriptors.push({
+                email: worker.email,
+                name: worker.name,
+                descriptor: detection.descriptor,
+              });
+              // console.log(`✅ Descriptor created for ${worker.name}`);
+            } else {
+              console.warn(`⚠ No face detected in photo for ${worker.name}`);
+            }
+          } catch (err) {
+            console.error(`❌ Error processing ${worker.name}:`, err);
           }
         }
+
+        // console.log(`✅ Loaded workers with descriptors: ${tempDescriptors.length}`);
         setDescriptors(tempDescriptors);
       } catch (err) {
         console.error("❌ Error loading workers:", err);
       }
     };
+
     loadWorkers();
   }, [modelsLoaded]);
 
@@ -124,22 +124,26 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
       const canvas = canvasRef.current;
       if (!video || !canvas || video.readyState !== 4) return;
 
+      // Detect faces
       const detections = await faceapi
-        .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+        .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
         .withFaceLandmarks()
         .withFaceDescriptors();
 
-      const dims = faceapi.matchDimensions(canvas, {
-        width: video.videoWidth,
-        height: video.videoHeight,
-      });
+      // console.log("📸 Detections:", detections.length);
+
+      const dims = { width: video.videoWidth, height: video.videoHeight };
+      faceapi.matchDimensions(canvas, dims);
       canvas.width = dims.width;
       canvas.height = dims.height;
 
       const resized = faceapi.resizeResults(detections, dims);
       const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // ✅ Draw boxes & landmarks
       faceapi.draw.drawDetections(canvas, resized);
+      // faceapi.draw.drawFaceLandmarks(canvas, resized); for the face model data points
 
       if (detections.length > 0 && selectedSite) {
         const liveDescriptor = detections[0].descriptor;
@@ -196,93 +200,149 @@ const FaceRecognitionPage = ({ onAttendanceMarked }) => {
     }
   };
 
+
   return (
     <div className="container py-4 face-page">
-      <h3 className="text-center text-primary mb-4">📷 Face Recognition</h3>
+      <div className="card shadow-lg border-0 rounded-4 p-4">
+        <h3 className="text-center text-primary mb-3 fw-bold">
+          📸 Face Recognition Attendance
+        </h3>
 
-      {!modelsLoaded && <p className="text-center text-warning">Loading models...</p>}
-      {!cameraReady && <p className="text-center text-warning">Initializing camera...</p>}
-
-      {/* Site Selection */}
-      <div className="d-flex justify-content-center mb-3">
-        <select
-          value={selectedSite}
-          onChange={(e) => setSelectedSite(e.target.value)}
-          className="form-select w-auto site-select"
-        >
-          <option value="">📌 Please select a site</option>
-          {sites.map((site) => (
-            <option key={site._id} value={site._id}>
-              {site.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Video & Canvas */}
-      <div className="d-flex justify-content-center mb-4 camera-wrapper">
-        <div className="position-relative w-100" style={{ maxWidth: "720px" }}>
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            width="100%"
-            className="img-fluid border rounded shadow-sm"
-          />
-          <canvas
-            ref={canvasRef}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              zIndex: 1,
-            }}
-          />
-        </div>
-      </div>
-
-      <p className="text-center fw-bold status-text">{status}</p>
-
-      {matchedWorker && (
-        <div className="alert alert-success text-center shadow-sm">
-          🎉 Matched with: <strong>{matchedWorker.name}</strong>
-        </div>
-      )}
-
-      <div className="d-flex justify-content-center mb-4 flex-wrap gap-2">
-        <button
-          className="btn btn-primary btn-lg"
-          onClick={() => markAttendance()}
-          disabled={!matchedWorker}
-        >
-          📝 Mark Attendance Manually
-        </button>
-      </div>
-
-      <h5 className="mt-4 mb-2">📋 Today’s Attendance</h5>
-      <ul className="list-group attendance-list">
-        {todayAttendance.length > 0 ? (
-          todayAttendance.map((entry, index) => (
-            <li
-              key={`${entry.email}-${entry.timestamp}`}
-              className="list-group-item d-flex justify-content-between flex-wrap align-items-center"
-            >
-              <span>
-                {index + 1}. {entry.email}
-              </span>
-              <small className="text-muted">
-                {new Date(entry.timestamp).toLocaleTimeString()}
-              </small>
-            </li>
-          ))
-        ) : (
-          <li className="list-group-item text-muted">No entries yet</li>
+        {!modelsLoaded && (
+          <div className="alert alert-warning text-center">
+            ⏳ Loading face recognition models...
+          </div>
         )}
-      </ul>
+
+        {!cameraReady && (
+          <div className="alert alert-warning text-center">
+            🎥 Initializing your camera...
+          </div>
+        )}
+
+        {/* Site Selection */}
+        <div className="d-flex justify-content-center mb-4">
+          <select
+            value={selectedSite}
+            onChange={(e) => setSelectedSite(e.target.value)}
+            className="form-select w-auto border-primary shadow-sm rounded-pill"
+          >
+            <option value="">📍 Select a Site</option>
+            {sites.map((site) => (
+              <option key={site._id} value={site._id}>
+                {site.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Camera Display */}
+        <div className="camera-wrapper d-flex justify-content-center mb-4">
+          <div
+            className="position-relative camera-box border border-3 border-primary rounded-4 shadow-sm overflow-hidden"
+            style={{ maxWidth: "720px" }}
+          >
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              className="img-fluid rounded-4"
+              width="100%"
+            />
+            <canvas
+              ref={canvasRef}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                zIndex: 1,
+                width: "100%",
+                height: "100%",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Status Section */}
+        <div className="text-center mb-3">
+          <span
+            className={`badge ${status.includes("✅")
+                ? "bg-success"
+                : status.includes("⚠")
+                  ? "bg-warning text-dark"
+                  : status.includes("❌")
+                    ? "bg-danger"
+                    : "bg-secondary"
+              } p-2 px-3 fs-6`}
+          >
+            {status || "Idle..."}
+          </span>
+        </div>
+
+        {matchedWorker && (
+          <div className="alert alert-success text-center shadow-sm">
+            🎉 Matched with: <strong>{matchedWorker.name}</strong>
+          </div>
+        )}
+
+        <div className="d-flex justify-content-center mb-4">
+          <button
+            className="btn btn-outline-primary btn-lg rounded-pill shadow-sm"
+            onClick={() => markAttendance()}
+            disabled={!matchedWorker}
+          >
+            📝 Mark Attendance
+          </button>
+        </div>
+
+        {/* Attendance List */}
+        <div className="attendance-section container mt-4">
+  <h5 className="text-center mb-3 text-secondary fw-semibold">
+    📋 Today’s Attendance
+  </h5>
+
+  {todayAttendance.length > 0 ? (
+    <ul className="list-group shadow-sm rounded-3 overflow-hidden">
+      {todayAttendance.map((entry, index) => (
+        <li
+          key={`${entry.email}-${entry.timestamp}-${index}`}
+          className="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-3 px-3"
+        >
+          {/* Left side (index + email) */}
+          <div className="d-flex align-items-center gap-2 flex-wrap text-break w-100 w-sm-auto">
+            <span className="fw-semibold text-dark small">
+              {index + 1}.
+            </span>
+            <span className="text-primary fw-semibold email-text">
+              {entry.email}
+            </span>
+          </div>
+
+          {/* Right side (time) */}
+          <div className="mt-2 mt-sm-0 text-sm-end">
+            <span className="badge punch-time-badge">
+              🕒 {new Date(entry.timestamp).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          </div>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <div className="text-center text-muted py-3 border rounded-3 bg-light small">
+      No attendance recorded yet
+    </div>
+  )}
+</div>
+
+
+      </div>
     </div>
   );
+
+
 };
 
 export default FaceRecognitionPage;

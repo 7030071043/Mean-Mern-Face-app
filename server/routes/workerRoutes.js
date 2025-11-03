@@ -4,13 +4,12 @@ const Worker = require("../models/Worker");
 const upload = require("../utils/multer");
 const router = express.Router();
 
-/**
- * ✅ Add Worker (with Cloudinary photo upload)
- */
+ 
 router.post("/add-worker", upload.single("photo"), async (req, res) => {
   try {
     const { name, email, status } = req.body;
-    const photo = req.file?.path || null; // Cloudinary returns a public URL
+   const photo = req.file?.path || req.file?.secure_url || null;
+ // ✅ Cloudinary URL
 
     const worker = new Worker({
       name,
@@ -27,6 +26,8 @@ router.post("/add-worker", upload.single("photo"), async (req, res) => {
     res.status(500).json({ message: "Error adding worker" });
   }
 });
+
+
 
 /**
  * ✅ Get all workers

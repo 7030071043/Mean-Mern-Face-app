@@ -1,17 +1,13 @@
+/* ---------- Base Page ---------- */
 .face-page {
-  background: #f4f6f9;
+  background: linear-gradient(135deg, #f8f9fa, #e9f2ff);
   min-height: 100vh;
 }
 
-.card {
-  border-radius: 12px;
-  background: #ffffff;
-  padding: 20px;
-}
-
+/* ---------- Camera Section ---------- */
 .camera-wrapper {
   position: relative;
-  overflow: hidden; /* ensures rectangles don't spill out */
+  overflow: hidden;
   border-radius: 12px;
 }
 
@@ -20,35 +16,61 @@
   width: 100%;
   height: auto;
   display: block;
+  border-radius: 1rem;
+  transition: all 0.3s ease-in-out;
 }
 
+.camera-wrapper video:hover {
+  transform: scale(1.01);
+}
 
+/* ---------- Status Text ---------- */
 .status-text {
   font-size: 1.1rem;
+  font-weight: 500;
   margin-bottom: 5px;
+  text-align: center;
+}
+
+/* ---------- Attendance Section ---------- */
+.attendance-section {
+  background-color: #ffffffb8;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  margin: 1rem auto;
+  max-width: 500px;
 }
 
 .attendance-list li {
   border-radius: 8px;
   margin-bottom: 6px;
   padding: 10px 15px;
-  transition: background 0.2s;
+  transition: background 0.2s ease-in-out;
 }
 
 .attendance-list li:hover {
   background: #f1f3f5;
 }
 
+/* ---------- Buttons ---------- */
 .btn-lg {
   min-width: 200px;
+  transition: all 0.3s ease;
 }
 
 @media (max-width: 992px) {
   .btn-lg {
     width: 100%;
+    font-size: 1rem;
+    padding: 0.6rem 1.2rem;
   }
+}
 
+/* ---------- Mobile Responsive ---------- */
+@media (max-width: 768px) {
   .camera-wrapper {
+    width: 100%;
     max-height: none;
   }
 }
